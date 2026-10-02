@@ -933,13 +933,11 @@ cancelBtn.addEventListener(
 
 const selfieSegmentation =
   new SelfieSegmentation({
-    locateFile:function(file){
+   locateFile:function(file){
 
-      return
-      "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/"
-      + file;
+    return "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/" + file;
 
-    }
+}
   });
 
 
