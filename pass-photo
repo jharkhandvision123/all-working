@@ -1,0 +1,528 @@
+```html
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Passport Photo System</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f3f4f6;
+        color: #222;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 30px auto;
+        padding: 20px;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 25px;
+        box-shadow: 0 5px 25px rgba(0,0,0,0.10);
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 0;
+        margin-bottom: 25px;
+    }
+
+    .upload-area {
+        border: 2px dashed #777;
+        border-radius: 12px;
+        padding: 35px 20px;
+        text-align: center;
+        background: #fafafa;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .upload-area:hover {
+        background: #f0f0f0;
+    }
+
+    .upload-area p {
+        margin: 8px 0;
+    }
+
+    .buttons {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    button,
+    .file-label {
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #1769aa;
+        color: white;
+        display: inline-block;
+    }
+
+    button:hover,
+    .file-label:hover {
+        opacity: 0.9;
+    }
+
+    #fileInput,
+    #pdfInput {
+        display: none;
+    }
+
+    .preview-section {
+        margin-top: 25px;
+        display: none;
+    }
+
+    .preview-section h2 {
+        text-align: center;
+        margin-bottom: 15px;
+    }
+
+    .image-wrapper {
+        width: 100%;
+        max-height: 550px;
+        overflow: auto;
+        background: #222;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    #previewImage {
+        max-width: 100%;
+        max-height: 520px;
+        display: block;
+        margin: auto;
+    }
+
+    .crop-actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .crop-btn {
+        background: #198754;
+    }
+
+    .cancel-btn {
+        background: #dc3545;
+    }
+
+    .result {
+        margin-top: 25px;
+        text-align: center;
+        display: none;
+    }
+
+    #croppedImage {
+        max-width: 100%;
+        max-height: 500px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+    }
+
+    .message {
+        text-align: center;
+        margin-top: 15px;
+        font-weight: bold;
+    }
+
+    .pdf-box {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 8px;
+        display: none;
+        text-align: center;
+    }
+
+    @media (max-width: 600px) {
+        .container {
+            margin: 10px auto;
+            padding: 10px;
+        }
+
+        .card {
+            padding: 15px;
+        }
+
+        h1 {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<!-- Cropper.js -->
+<link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <h1>Passport Photo System</h1>
+
+        <div
+            class="upload-area"
+            id="pasteArea"
+            tabindex="0"
+        >
+            <h3>Photo यहाँ Paste करें</h3>
+
+            <p>
+                <b>Ctrl + V</b> दबाकर फोटो Paste करें
+            </p>
+
+            <p>या नीचे से फोटो चुनें</p>
+
+            <div class="buttons">
+
+                <label class="file-label" for="fileInput">
+                    📷 Photo Upload
+                </label>
+
+                <label class="file-label" for="pdfInput">
+                    📄 PDF Upload
+                </label>
+
+            </div>
+        </div>
+
+        <input
+            type="file"
+            id="fileInput"
+            accept="image/*"
+        >
+
+        <input
+            type="file"
+            id="pdfInput"
+            accept="application/pdf"
+        >
+
+        <div class="pdf-box" id="pdfBox">
+            PDF चुना गया है।
+            <br>
+            <span id="pdfName"></span>
+            <br><br>
+            <small>
+                PDF processing अगले चरण में जोड़ा जाएगा।
+            </small>
+        </div>
+
+        <div class="preview-section" id="previewSection">
+
+            <h2>Crop करें</h2>
+
+            <div class="image-wrapper">
+                <img id="previewImage" alt="Preview">
+            </div>
+
+            <div class="crop-actions">
+
+                <button
+                    class="crop-btn"
+                    id="cropButton"
+                    type="button"
+                >
+                    ✂️ Crop करें
+                </button>
+
+                <button
+                    class="cancel-btn"
+                    id="cancelButton"
+                    type="button"
+                >
+                    ✕ Cancel
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="result" id="resultSection">
+
+            <h2>Crop किया हुआ Photo</h2>
+
+            <img
+                id="croppedImage"
+                alt="Cropped Photo"
+            >
+
+            <div class="message">
+                ✅ Photo Crop हो गया
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Cropper.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<script>
+
+let cropper = null;
+
+const fileInput = document.getElementById("fileInput");
+const pdfInput = document.getElementById("pdfInput");
+
+const previewSection = document.getElementById("previewSection");
+const previewImage = document.getElementById("previewImage");
+
+const cropButton = document.getElementById("cropButton");
+const cancelButton = document.getElementById("cancelButton");
+
+const resultSection = document.getElementById("resultSection");
+const croppedImage = document.getElementById("croppedImage");
+
+const pdfBox = document.getElementById("pdfBox");
+const pdfName = document.getElementById("pdfName");
+
+
+// -------------------------------
+// IMAGE LOAD FUNCTION
+// -------------------------------
+
+function loadImage(file) {
+
+    if (!file || !file.type.startsWith("image/")) {
+        alert("कृपया केवल Image file चुनें।");
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(e) {
+
+        previewImage.src = e.target.result;
+
+        previewSection.style.display = "block";
+        resultSection.style.display = "none";
+        pdfBox.style.display = "none";
+
+        if (cropper) {
+            cropper.destroy();
+            cropper = null;
+        }
+
+        previewImage.onload = function() {
+
+            cropper = new Cropper(previewImage, {
+
+                viewMode: 1,
+
+                dragMode: "move",
+
+                autoCropArea: 0.85,
+
+                responsive: true,
+
+                restore: true,
+
+                guides: true,
+
+                center: true,
+
+                highlight: true,
+
+                background: true,
+
+                movable: true,
+
+                zoomable: true,
+
+                rotatable: true,
+
+                scalable: false
+
+            });
+
+        };
+
+    };
+
+    reader.readAsDataURL(file);
+}
+
+
+// -------------------------------
+// PHOTO UPLOAD
+// -------------------------------
+
+fileInput.addEventListener("change", function() {
+
+    const file = this.files[0];
+
+    if (file) {
+        loadImage(file);
+    }
+
+});
+
+
+// -------------------------------
+// PDF UPLOAD
+// -------------------------------
+
+pdfInput.addEventListener("change", function() {
+
+    const file = this.files[0];
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+
+        alert("कृपया केवल PDF file चुनें।");
+
+        return;
+    }
+
+    pdfName.textContent = file.name;
+
+    pdfBox.style.display = "block";
+
+    previewSection.style.display = "none";
+
+    resultSection.style.display = "none";
+
+    if (cropper) {
+
+        cropper.destroy();
+
+        cropper = null;
+
+    }
+
+});
+
+
+// -------------------------------
+// COPY / PASTE PHOTO
+// -------------------------------
+
+document.addEventListener("paste", function(event) {
+
+    const items = event.clipboardData.items;
+
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+
+        const item = items[i];
+
+        if (item.type.indexOf("image") !== -1) {
+
+            const file = item.getAsFile();
+
+            if (file) {
+
+                loadImage(file);
+
+            }
+
+            event.preventDefault();
+
+            return;
+        }
+
+    }
+
+});
+
+
+// -------------------------------
+// CROP BUTTON
+// -------------------------------
+
+cropButton.addEventListener("click", function() {
+
+    if (!cropper) {
+
+        alert("पहले फोटो चुनें।");
+
+        return;
+    }
+
+    const canvas = cropper.getCroppedCanvas({
+
+        imageSmoothingEnabled: true,
+
+        imageSmoothingQuality: "high"
+
+    });
+
+    if (!canvas) {
+
+        alert("Crop नहीं हो पाया।");
+
+        return;
+    }
+
+    croppedImage.src = canvas.toDataURL(
+        "image/jpeg",
+        0.95
+    );
+
+    resultSection.style.display = "block";
+
+});
+
+
+// -------------------------------
+// CANCEL BUTTON
+// -------------------------------
+
+cancelButton.addEventListener("click", function() {
+
+    if (cropper) {
+
+        cropper.destroy();
+
+        cropper = null;
+
+    }
+
+    previewImage.src = "";
+
+    previewSection.style.display = "none";
+
+    resultSection.style.display = "none";
+
+    fileInput.value = "";
+
+});
+
+</script>
+
+</body>
+</html>
+```
