@@ -1,525 +1,1376 @@
 ```html
 <!DOCTYPE html>
-<html lang="hi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Passport Photo System</title>
+
+<title>Passport Photo Printer</title>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+/>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
+*{
+  box-sizing:border-box;
+}
 
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f3f4f6;
-        color: #222;
-    }
+body{
+  margin:0;
+  padding:20px;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#f4f6f8;
+  color:#111827;
+}
 
-    .container {
-        max-width: 900px;
-        margin: 30px auto;
-        padding: 20px;
-    }
+.container{
+  max-width:1100px;
+  margin:auto;
+}
 
-    .card {
-        background: #fff;
-        border-radius: 14px;
-        padding: 25px;
-        box-shadow: 0 5px 25px rgba(0,0,0,0.10);
-    }
+.card{
+  background:white;
+  border-radius:15px;
+  padding:25px;
+  box-shadow:0 5px 25px rgba(0,0,0,0.08);
+}
 
-    h1 {
-        text-align: center;
-        margin-top: 0;
-        margin-bottom: 25px;
-    }
+h1{
+  text-align:center;
+  margin-top:0;
+  color:#111827;
+}
 
-    .upload-area {
-        border: 2px dashed #777;
-        border-radius: 12px;
-        padding: 35px 20px;
-        text-align: center;
-        background: #fafafa;
-        cursor: pointer;
-        transition: 0.2s;
-    }
+.upload-area{
+  border:2px dashed #2563eb;
+  border-radius:12px;
+  padding:25px;
+  text-align:center;
+  background:#eff6ff;
+}
 
-    .upload-area:hover {
-        background: #f0f0f0;
-    }
+.upload-area p{
+  margin:8px 0;
+}
 
-    .upload-area p {
-        margin: 8px 0;
-    }
+input[type="file"]{
+  display:none;
+}
 
-    .buttons {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        flex-wrap: wrap;
-        margin-top: 20px;
-    }
+.file-label{
+  display:inline-block;
+  padding:12px 22px;
+  background:#2563eb;
+  color:white;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+}
 
-    button,
-    .file-label {
-        border: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-        background: #1769aa;
-        color: white;
-        display: inline-block;
-    }
+.paste-info{
+  margin-top:12px;
+  color:#374151;
+  font-size:14px;
+}
 
-    button:hover,
-    .file-label:hover {
-        opacity: 0.9;
-    }
+.pdf-box{
+  margin-top:15px;
+  padding:15px;
+  background:#fff7ed;
+  border:1px solid #fed7aa;
+  border-radius:10px;
+}
 
-    #fileInput,
-    #pdfInput {
-        display: none;
-    }
+.preview-section{
+  display:none;
+  margin-top:25px;
+}
 
-    .preview-section {
-        margin-top: 25px;
-        display: none;
-    }
+.image-wrapper{
+  max-width:700px;
+  margin:auto;
+  background:#111827;
+  padding:10px;
+  border-radius:10px;
+}
 
-    .preview-section h2 {
-        text-align: center;
-        margin-bottom: 15px;
-    }
+#previewImage{
+  display:block;
+  max-width:100%;
+  max-height:600px;
+  margin:auto;
+}
 
-    .image-wrapper {
-        width: 100%;
-        max-height: 550px;
-        overflow: auto;
-        background: #222;
-        border-radius: 10px;
-        padding: 10px;
-        text-align: center;
-    }
+.crop-actions{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  margin-top:15px;
+  flex-wrap:wrap;
+}
 
-    #previewImage {
-        max-width: 100%;
-        max-height: 520px;
-        display: block;
-        margin: auto;
-    }
+button{
+  border:none;
+  border-radius:8px;
+  padding:12px 20px;
+  font-size:16px;
+  cursor:pointer;
+  font-weight:bold;
+}
 
-    .crop-actions {
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        margin-top: 20px;
-        flex-wrap: wrap;
-    }
+.crop-btn{
+  background:#16a34a;
+  color:white;
+}
 
-    .crop-btn {
-        background: #198754;
-    }
+.cancel-btn{
+  background:#dc2626;
+  color:white;
+}
 
-    .cancel-btn {
-        background: #dc3545;
-    }
+.start-area{
+  display:none;
+  text-align:center;
+  margin-top:25px;
+}
 
-    .result {
-        margin-top: 25px;
-        text-align: center;
-        display: none;
-    }
+.start-btn{
+  background:#2563eb;
+  color:white;
+  font-size:20px;
+  padding:14px 40px;
+}
 
-    #croppedImage {
-        max-width: 100%;
-        max-height: 500px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-    }
+.processing{
+  display:none;
+  text-align:center;
+  margin-top:20px;
+}
 
-    .message {
-        text-align: center;
-        margin-top: 15px;
-        font-weight: bold;
-    }
+.loader{
+  width:45px;
+  height:45px;
+  border:5px solid #e5e7eb;
+  border-top:5px solid #2563eb;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:10px auto;
+}
 
-    .pdf-box {
-        margin-top: 20px;
-        padding: 15px;
-        background: #fff3cd;
-        border-radius: 8px;
-        display: none;
-        text-align: center;
-    }
+@keyframes spin{
+  100%{
+    transform:rotate(360deg);
+  }
+}
 
-    @media (max-width: 600px) {
-        .container {
-            margin: 10px auto;
-            padding: 10px;
-        }
+.result{
+  display:none;
+  margin-top:25px;
+  text-align:center;
+}
 
-        .card {
-            padding: 15px;
-        }
+.ready{
+  display:inline-block;
+  background:#16a34a;
+  color:white;
+  padding:8px 18px;
+  border-radius:20px;
+  font-weight:bold;
+  margin-bottom:15px;
+}
 
-        h1 {
-            font-size: 24px;
-        }
-    }
+.enhanced{
+  display:inline-block;
+  background:#7c3aed;
+  color:white;
+  padding:7px 15px;
+  border-radius:20px;
+  font-size:14px;
+  margin-left:5px;
+}
+
+.photo-preview{
+  margin:15px auto;
+  width:240px;
+  height:300px;
+  background:white;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#finalPhoto{
+  width:240px;
+  height:300px;
+  object-fit:cover;
+  border:3px solid #000;
+  background:#fff;
+}
+
+.quantity-control{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:20px;
+  margin-top:20px;
+}
+
+.quantity-control button{
+  width:50px;
+  height:50px;
+  padding:0;
+  font-size:28px;
+  color:white;
+}
+
+.minus{
+  background:#dc2626;
+}
+
+.plus{
+  background:#16a34a;
+}
+
+.quantity{
+  font-size:24px;
+  font-weight:bold;
+  min-width:50px;
+}
+
+.status{
+  margin-top:15px;
+  color:#374151;
+  font-weight:bold;
+}
+
+.a4-section{
+  display:none;
+  margin-top:35px;
+}
+
+.a4-title{
+  text-align:center;
+  margin-bottom:15px;
+}
+
+.a4-buttons{
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:15px;
+}
+
+.a4-size-btn{
+  background:#ea580c;
+  color:white;
+  font-size:17px;
+}
+
+.print-btn{
+  background:#6f42c1;
+  color:white;
+  font-size:18px;
+}
+
+.a4-wrap{
+  width:100%;
+  overflow:auto;
+  padding:15px;
+  background:#d1d5db;
+  border-radius:10px;
+}
+
+.a4-page{
+  width:210mm;
+  min-width:210mm;
+  height:297mm;
+  min-height:297mm;
+
+  background:white;
+
+  padding:8mm;
+
+  display:grid;
+
+  grid-template-columns:repeat(5,30.48mm);
+
+  grid-auto-rows:38.1mm;
+
+  column-gap:5mm;
+  row-gap:4mm;
+
+  align-content:start;
+  justify-content:start;
+
+  margin:auto;
+}
+
+.a4-photo{
+  width:30.48mm;
+  height:38.1mm;
+
+  object-fit:fill;
+
+  background:white;
+
+  border:0.6mm solid #000;
+
+  display:block;
+}
+
+@media(max-width:600px){
+
+  body{
+    padding:10px;
+  }
+
+  .card{
+    padding:15px;
+  }
+
+  .a4-wrap{
+    overflow-x:auto;
+  }
+}
+
+/* PRINT */
+
+@media print{
+
+  @page{
+    size:A4 portrait;
+    margin:0;
+  }
+
+  body{
+    margin:0;
+    padding:0;
+    background:white;
+  }
+
+  .container{
+    max-width:none;
+  }
+
+  .card{
+    box-shadow:none;
+    padding:0;
+  }
+
+  h1,
+  .upload-area,
+  .pdf-box,
+  .preview-section,
+  .start-area,
+  .processing,
+  .result,
+  .a4-title,
+  .a4-buttons{
+    display:none !important;
+  }
+
+  .a4-section{
+    display:block !important;
+    margin:0;
+  }
+
+  .a4-wrap{
+    padding:0;
+    background:white;
+    overflow:visible;
+  }
+
+  .a4-page{
+    margin:0;
+    width:210mm;
+    min-width:210mm;
+    height:297mm;
+    min-height:297mm;
+    box-shadow:none;
+  }
+}
 </style>
-
-<!-- Cropper.js -->
-<link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
->
-
 </head>
 
 <body>
 
 <div class="container">
 
-    <div class="card">
+<div class="card">
 
-        <h1>Passport Photo System</h1>
+<h1>📸 Passport Photo Printer</h1>
 
-        <div
-            class="upload-area"
-            id="pasteArea"
-            tabindex="0"
-        >
-            <h3>Photo यहाँ Paste करें</h3>
+<div class="upload-area">
 
-            <p>
-                <b>Ctrl + V</b> दबाकर फोटो Paste करें
-            </p>
+<p><strong>Upload Photo</strong></p>
 
-            <p>या नीचे से फोटो चुनें</p>
+<label class="file-label" for="photoInput">
+Choose Photo
+</label>
 
-            <div class="buttons">
+<input
+  type="file"
+  id="photoInput"
+  accept="image/*"
+/>
 
-                <label class="file-label" for="fileInput">
-                    📷 Photo Upload
-                </label>
+<div class="paste-info">
+या फोटो को Copy करके यहाँ <strong>Ctrl + V</strong> करें
+</div>
 
-                <label class="file-label" for="pdfInput">
-                    📄 PDF Upload
-                </label>
+<div class="pdf-box">
+<strong>PDF Upload</strong><br><br>
 
-            </div>
-        </div>
+<label class="file-label" for="pdfInput">
+Choose PDF
+</label>
 
-        <input
-            type="file"
-            id="fileInput"
-            accept="image/*"
-        >
+<input
+  type="file"
+  id="pdfInput"
+  accept="application/pdf"
+/>
 
-        <input
-            type="file"
-            id="pdfInput"
-            accept="application/pdf"
-        >
-
-        <div class="pdf-box" id="pdfBox">
-            PDF चुना गया है।
-            <br>
-            <span id="pdfName"></span>
-            <br><br>
-            <small>
-                PDF processing अगले चरण में जोड़ा जाएगा।
-            </small>
-        </div>
-
-        <div class="preview-section" id="previewSection">
-
-            <h2>Crop करें</h2>
-
-            <div class="image-wrapper">
-                <img id="previewImage" alt="Preview">
-            </div>
-
-            <div class="crop-actions">
-
-                <button
-                    class="crop-btn"
-                    id="cropButton"
-                    type="button"
-                >
-                    ✂️ Crop करें
-                </button>
-
-                <button
-                    class="cancel-btn"
-                    id="cancelButton"
-                    type="button"
-                >
-                    ✕ Cancel
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="result" id="resultSection">
-
-            <h2>Crop किया हुआ Photo</h2>
-
-            <img
-                id="croppedImage"
-                alt="Cropped Photo"
-            >
-
-            <div class="message">
-                ✅ Photo Crop हो गया
-            </div>
-
-        </div>
-
-    </div>
+<p style="font-size:13px;">
+PDF processing अगले चरण में जोड़ा जा सकता है।
+</p>
 
 </div>
 
-<!-- Cropper.js -->
+</div>
+
+
+<!-- CROP -->
+
+<div
+  class="preview-section"
+  id="previewSection"
+>
+
+<div class="image-wrapper">
+
+<img
+  id="previewImage"
+  alt="Photo Preview"
+/>
+
+</div>
+
+<div class="crop-actions">
+
+<button
+  class="crop-btn"
+  id="cropBtn"
+>
+✂️ Crop Photo
+</button>
+
+<button
+  class="cancel-btn"
+  id="cancelBtn"
+>
+Cancel
+</button>
+
+</div>
+
+</div>
+
+
+<!-- START -->
+
+<div
+  class="start-area"
+  id="startArea"
+>
+
+<button
+  class="start-btn"
+  id="startBtn"
+>
+🚀 START
+</button>
+
+</div>
+
+
+<!-- PROCESSING -->
+
+<div
+  class="processing"
+  id="processing"
+>
+
+<div class="loader"></div>
+
+<strong>
+Photo Processing...
+</strong>
+
+<p>
+Background Remove + White Background + HD Enhancement
+</p>
+
+</div>
+
+
+<!-- RESULT -->
+
+<div
+  class="result"
+  id="result"
+>
+
+<div>
+
+<span class="ready">
+✓ READY
+</span>
+
+<span class="enhanced">
+✨ HD Enhanced
+</span>
+
+</div>
+
+
+<div class="photo-preview">
+
+<img
+  id="finalPhoto"
+  alt="Final Passport Photo"
+/>
+
+</div>
+
+
+<!-- QUANTITY -->
+
+<div class="quantity-control">
+
+<button
+  class="minus"
+  id="minusBtn"
+>
+−
+</button>
+
+<div
+  class="quantity"
+  id="quantity"
+>
+1
+</div>
+
+<button
+  class="plus"
+  id="plusBtn"
+>
++
+</button>
+
+</div>
+
+<div class="status" id="status">
+1 Photo Selected
+</div>
+
+
+<!-- A4 BUTTON -->
+
+<div style="margin-top:20px;">
+
+<button
+  class="a4-size-btn"
+  id="a4SizeBtn"
+>
+📄 A4 Size Layout
+</button>
+
+</div>
+
+</div>
+
+
+<!-- A4 -->
+
+<div
+  class="a4-section"
+  id="a4Section"
+>
+
+<h2 class="a4-title">
+A4 Size Photo Layout
+</h2>
+
+<div class="a4-buttons">
+
+<button
+  class="a4-size-btn"
+  id="refreshA4Btn"
+>
+🔄 Update A4 Layout
+</button>
+
+<button
+  class="print-btn"
+  id="printBtn"
+>
+🖨️ Print A4
+</button>
+
+</div>
+
+
+<div class="a4-wrap">
+
+<div
+  class="a4-page"
+  id="a4Page"
+>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/selfie_segmentation.js"></script>
+
 
 <script>
 
 let cropper = null;
 
-const fileInput = document.getElementById("fileInput");
-const pdfInput = document.getElementById("pdfInput");
+let finalImageData = null;
 
-const previewSection = document.getElementById("previewSection");
-const previewImage = document.getElementById("previewImage");
+let photoQuantity = 1;
 
-const cropButton = document.getElementById("cropButton");
-const cancelButton = document.getElementById("cancelButton");
-
-const resultSection = document.getElementById("resultSection");
-const croppedImage = document.getElementById("croppedImage");
-
-const pdfBox = document.getElementById("pdfBox");
-const pdfName = document.getElementById("pdfName");
+let originalImage = null;
 
 
-// -------------------------------
-// IMAGE LOAD FUNCTION
-// -------------------------------
+/* ELEMENTS */
 
-function loadImage(file) {
+const photoInput =
+  document.getElementById("photoInput");
 
-    if (!file || !file.type.startsWith("image/")) {
-        alert("कृपया केवल Image file चुनें।");
-        return;
-    }
+const pdfInput =
+  document.getElementById("pdfInput");
 
-    const reader = new FileReader();
+const previewSection =
+  document.getElementById("previewSection");
 
-    reader.onload = function(e) {
+const previewImage =
+  document.getElementById("previewImage");
 
-        previewImage.src = e.target.result;
+const cropBtn =
+  document.getElementById("cropBtn");
 
-        previewSection.style.display = "block";
-        resultSection.style.display = "none";
-        pdfBox.style.display = "none";
+const cancelBtn =
+  document.getElementById("cancelBtn");
 
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
+const startArea =
+  document.getElementById("startArea");
 
-        previewImage.onload = function() {
+const startBtn =
+  document.getElementById("startBtn");
 
-            cropper = new Cropper(previewImage, {
+const processing =
+  document.getElementById("processing");
 
-                viewMode: 1,
+const result =
+  document.getElementById("result");
 
-                dragMode: "move",
+const finalPhoto =
+  document.getElementById("finalPhoto");
 
-                autoCropArea: 0.85,
+const plusBtn =
+  document.getElementById("plusBtn");
 
-                responsive: true,
+const minusBtn =
+  document.getElementById("minusBtn");
 
-                restore: true,
+const quantity =
+  document.getElementById("quantity");
 
-                guides: true,
+const status =
+  document.getElementById("status");
 
-                center: true,
+const a4Section =
+  document.getElementById("a4Section");
 
-                highlight: true,
+const a4Page =
+  document.getElementById("a4Page");
 
-                background: true,
+const a4SizeBtn =
+  document.getElementById("a4SizeBtn");
 
-                movable: true,
+const refreshA4Btn =
+  document.getElementById("refreshA4Btn");
 
-                zoomable: true,
+const printBtn =
+  document.getElementById("printBtn");
 
-                rotatable: true,
 
-                scalable: false
+/* LOAD PHOTO */
 
-            });
+function loadPhoto(src){
 
-        };
+  previewImage.src = src;
 
-    };
+  previewSection.style.display = "block";
 
-    reader.readAsDataURL(file);
+  startArea.style.display = "none";
+
+  result.style.display = "none";
+
+  a4Section.style.display = "none";
+
+  if(cropper){
+    cropper.destroy();
+    cropper = null;
+  }
+
+  previewImage.onload = function(){
+
+    cropper = new Cropper(
+      previewImage,
+      {
+        viewMode:1,
+        dragMode:"move",
+        autoCropArea:0.9,
+        responsive:true,
+        background:false
+      }
+    );
+
+  };
+
 }
 
 
-// -------------------------------
-// PHOTO UPLOAD
-// -------------------------------
+/* FILE UPLOAD */
 
-fileInput.addEventListener("change", function() {
+photoInput.addEventListener(
+  "change",
+  function(e){
 
-    const file = this.files[0];
+    const file =
+      e.target.files[0];
 
-    if (file) {
-        loadImage(file);
-    }
+    if(!file) return;
 
-});
+    const reader =
+      new FileReader();
+
+    reader.onload =
+      function(event){
+
+        loadPhoto(
+          event.target.result
+        );
+
+      };
+
+    reader.readAsDataURL(file);
+
+  }
+);
 
 
-// -------------------------------
-// PDF UPLOAD
-// -------------------------------
+/* PDF */
 
-pdfInput.addEventListener("change", function() {
+pdfInput.addEventListener(
+  "change",
+  function(){
 
-    const file = this.files[0];
+    if(pdfInput.files.length){
 
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-
-        alert("कृपया केवल PDF file चुनें।");
-
-        return;
-    }
-
-    pdfName.textContent = file.name;
-
-    pdfBox.style.display = "block";
-
-    previewSection.style.display = "none";
-
-    resultSection.style.display = "none";
-
-    if (cropper) {
-
-        cropper.destroy();
-
-        cropper = null;
+      alert(
+        "PDF upload selected. PDF photo extraction अगले चरण में जोड़ा जाएगा।"
+      );
 
     }
 
-});
+  }
+);
 
 
-// -------------------------------
-// COPY / PASTE PHOTO
-// -------------------------------
+/* CTRL + V */
 
-document.addEventListener("paste", function(event) {
+document.addEventListener(
+  "paste",
+  function(event){
 
-    const items = event.clipboardData.items;
+    const items =
+      event.clipboardData.items;
 
-    if (!items) return;
+    for(
+      let i=0;
+      i<items.length;
+      i++
+    ){
 
-    for (let i = 0; i < items.length; i++) {
+      const item =
+        items[i];
 
-        const item = items[i];
+      if(
+        item.type.indexOf("image") !== -1
+      ){
 
-        if (item.type.indexOf("image") !== -1) {
+        const file =
+          item.getAsFile();
 
-            const file = item.getAsFile();
+        const reader =
+          new FileReader();
 
-            if (file) {
+        reader.onload =
+          function(e){
 
-                loadImage(file);
+            loadPhoto(
+              e.target.result
+            );
 
-            }
+          };
 
-            event.preventDefault();
+        reader.readAsDataURL(file);
 
-            return;
-        }
+        break;
+      }
 
     }
 
-});
+  }
+);
 
 
-// -------------------------------
-// CROP BUTTON
-// -------------------------------
+/* CROP */
 
-cropButton.addEventListener("click", function() {
+cropBtn.addEventListener(
+  "click",
+  function(){
 
-    if (!cropper) {
+    if(!cropper) return;
 
-        alert("पहले फोटो चुनें।");
+    const canvas =
+      cropper.getCroppedCanvas({
+        width:1200,
+        height:1500,
+        imageSmoothingEnabled:true,
+        imageSmoothingQuality:"high"
+      });
 
-        return;
+    if(!canvas) return;
+
+    originalImage =
+      canvas.toDataURL(
+        "image/jpeg",
+        0.98
+      );
+
+    previewImage.src =
+      originalImage;
+
+    if(cropper){
+
+      cropper.destroy();
+
+      cropper = null;
+
     }
 
-    const canvas = cropper.getCroppedCanvas({
+    startArea.style.display =
+      "block";
 
-        imageSmoothingEnabled: true,
+    previewSection.style.display =
+      "none";
 
-        imageSmoothingQuality: "high"
-
+    window.scrollTo({
+      top:startArea.offsetTop - 20,
+      behavior:"smooth"
     });
 
-    if (!canvas) {
+  }
+);
 
-        alert("Crop नहीं हो पाया।");
 
-        return;
+/* CANCEL */
+
+cancelBtn.addEventListener(
+  "click",
+  function(){
+
+    if(cropper){
+
+      cropper.destroy();
+
+      cropper = null;
+
     }
 
-    croppedImage.src = canvas.toDataURL(
-        "image/jpeg",
-        0.95
+    previewSection.style.display =
+      "none";
+
+    startArea.style.display =
+      "none";
+
+    photoInput.value = "";
+
+  }
+);
+
+
+/* MEDIAPIPE */
+
+const selfieSegmentation =
+  new SelfieSegmentation({
+    locateFile:function(file){
+
+      return
+      "https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation/"
+      + file;
+
+    }
+  });
+
+
+selfieSegmentation.setOptions({
+  modelSelection:1
+});
+
+
+/* PROCESS PHOTO */
+
+async function processPhoto(){
+
+  return new Promise(
+    async function(resolve,reject){
+
+      try{
+
+        const img =
+          new Image();
+
+        img.onload =
+          async function(){
+
+            const width = 1800;
+
+            const height =
+              Math.round(
+                width * 1.25
+              );
+
+            /*
+              ENHANCEMENT CANVAS
+            */
+
+            const sourceCanvas =
+              document.createElement("canvas");
+
+            sourceCanvas.width =
+              width;
+
+            sourceCanvas.height =
+              height;
+
+            const sourceCtx =
+              sourceCanvas.getContext("2d");
+
+            sourceCtx.imageSmoothingEnabled =
+              true;
+
+            sourceCtx.imageSmoothingQuality =
+              "high";
+
+            /*
+              Mild HD visual enhancement
+            */
+
+            sourceCtx.filter =
+              "brightness(1.04) contrast(1.08) saturate(1.04)";
+
+            sourceCtx.drawImage(
+              img,
+              0,
+              0,
+              width,
+              height
+            );
+
+            sourceCtx.filter =
+              "none";
+
+
+            /*
+              MEDIAPIPE
+            */
+
+            selfieSegmentation.onResults(
+              function(results){
+
+                const outputCanvas =
+                  document.createElement("canvas");
+
+                outputCanvas.width =
+                  width;
+
+                outputCanvas.height =
+                  height;
+
+                const ctx =
+                  outputCanvas.getContext("2d");
+
+                ctx.imageSmoothingEnabled =
+                  true;
+
+                ctx.imageSmoothingQuality =
+                  "high";
+
+
+                /*
+                  WHITE BACKGROUND
+                */
+
+                ctx.fillStyle =
+                  "#ffffff";
+
+                ctx.fillRect(
+                  0,
+                  0,
+                  width,
+                  height
+                );
+
+
+                /*
+                  MASK
+                */
+
+                ctx.save();
+
+                ctx.drawImage(
+                  results.segmentationMask,
+                  0,
+                  0,
+                  width,
+                  height
+                );
+
+                ctx.globalCompositeOperation =
+                  "source-in";
+
+                ctx.drawImage(
+                  sourceCanvas,
+                  0,
+                  0,
+                  width,
+                  height
+                );
+
+                ctx.restore();
+
+
+                /*
+                  BLACK BORDER
+                */
+
+                ctx.strokeStyle =
+                  "#000000";
+
+                ctx.lineWidth =
+                  10;
+
+                ctx.strokeRect(
+                  5,
+                  5,
+                  width - 10,
+                  height - 10
+                );
+
+
+                /*
+                  FINAL IMAGE
+                */
+
+                const data =
+                  outputCanvas.toDataURL(
+                    "image/jpeg",
+                    0.99
+                  );
+
+                resolve(data);
+
+              }
+            );
+
+
+            await selfieSegmentation.send({
+              image:sourceCanvas
+            });
+
+          };
+
+
+        img.onerror =
+          reject;
+
+        img.src =
+          originalImage;
+
+      }
+      catch(error){
+
+        reject(error);
+
+      }
+
+    }
+  );
+
+}
+
+
+/* START */
+
+startBtn.addEventListener(
+  "click",
+  async function(){
+
+    if(!originalImage){
+
+      alert(
+        "पहले फोटो Crop करें।"
+      );
+
+      return;
+
+    }
+
+    startArea.style.display =
+      "none";
+
+    processing.style.display =
+      "block";
+
+    result.style.display =
+      "none";
+
+    try{
+
+      finalImageData =
+        await processPhoto();
+
+      finalPhoto.src =
+        finalImageData;
+
+      processing.style.display =
+        "none";
+
+      result.style.display =
+        "block";
+
+      photoQuantity =
+        1;
+
+      quantity.textContent =
+        photoQuantity;
+
+      status.textContent =
+        "1 Photo Selected";
+
+      buildA4Layout();
+
+    }
+    catch(error){
+
+      console.error(error);
+
+      processing.style.display =
+        "none";
+
+      startArea.style.display =
+        "block";
+
+      alert(
+        "Photo processing में समस्या हुई। कृपया फिर से कोशिश करें।"
+      );
+
+    }
+
+  }
+);
+
+
+/* PLUS */
+
+plusBtn.addEventListener(
+  "click",
+  function(){
+
+    if(!finalImageData) return;
+
+    photoQuantity++;
+
+    quantity.textContent =
+      photoQuantity;
+
+    status.textContent =
+      photoQuantity
+      + " Photos Selected";
+
+    buildA4Layout();
+
+  }
+);
+
+
+/* MINUS */
+
+minusBtn.addEventListener(
+  "click",
+  function(){
+
+    if(photoQuantity <= 1){
+
+      return;
+
+    }
+
+    photoQuantity--;
+
+    quantity.textContent =
+      photoQuantity;
+
+    status.textContent =
+      photoQuantity
+      + " Photos Selected";
+
+    buildA4Layout();
+
+  }
+);
+
+
+/* A4 LAYOUT */
+
+function buildA4Layout(){
+
+  if(!finalImageData){
+
+    return;
+
+  }
+
+  a4Page.innerHTML = "";
+
+
+  for(
+    let i=0;
+    i<photoQuantity;
+    i++
+  ){
+
+    const img =
+      document.createElement("img");
+
+    img.className =
+      "a4-photo";
+
+    img.src =
+      finalImageData;
+
+    img.alt =
+      "Passport Photo "
+      + (i + 1);
+
+    a4Page.appendChild(img);
+
+  }
+
+}
+
+
+/* A4 SIZE BUTTON */
+
+a4SizeBtn.addEventListener(
+  "click",
+  function(){
+
+    if(!finalImageData){
+
+      alert(
+        "पहले START दबाकर फोटो READY करें।"
+      );
+
+      return;
+
+    }
+
+    buildA4Layout();
+
+    a4Section.style.display =
+      "block";
+
+    setTimeout(
+      function(){
+
+        a4Section.scrollIntoView({
+          behavior:"smooth",
+          block:"start"
+        });
+
+      },
+      100
     );
 
-    resultSection.style.display = "block";
+  }
+);
 
-});
+
+/* UPDATE A4 */
+
+refreshA4Btn.addEventListener(
+  "click",
+  function(){
+
+    buildA4Layout();
+
+  }
+);
 
 
-// -------------------------------
-// CANCEL BUTTON
-// -------------------------------
+/* PRINT */
 
-cancelButton.addEventListener("click", function() {
+printBtn.addEventListener(
+  "click",
+  function(){
 
-    if (cropper) {
+    if(!finalImageData){
 
-        cropper.destroy();
+      alert(
+        "पहले फोटो READY करें।"
+      );
 
-        cropper = null;
+      return;
 
     }
 
-    previewImage.src = "";
+    buildA4Layout();
 
-    previewSection.style.display = "none";
+    window.print();
 
-    resultSection.style.display = "none";
-
-    fileInput.value = "";
-
-});
+  }
+);
 
 </script>
 
