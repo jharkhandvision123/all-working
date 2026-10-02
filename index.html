@@ -136,6 +136,67 @@
 
 
         /* =========================
+           LOGO SN
+        ========================= */
+
+        .logo span {
+            position: relative;
+
+            z-index: 5;
+
+            font-family: Arial, Helvetica, sans-serif;
+
+            font-size: 25px;
+
+            font-weight: 900;
+
+            letter-spacing: -1px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    #ff671f 0%,
+                    #ff671f 32%,
+                    #333333 32%,
+                    #333333 50%,
+                    #046a38 50%,
+                    #046a38 82%,
+                    #ff671f 100%
+                );
+
+            background-size: 250% auto;
+
+            -webkit-background-clip: text;
+
+            background-clip: text;
+
+            -webkit-text-fill-color: transparent;
+
+            animation:
+                logoTextShine 3s linear infinite;
+
+            text-shadow: none;
+        }
+
+
+        @keyframes logoTextShine {
+
+            0% {
+                background-position: 0% center;
+            }
+
+            50% {
+                background-position: 100% center;
+            }
+
+            100% {
+                background-position: 0% center;
+            }
+
+        }
+
+
+        /* =========================
            LOGO ANIMATION
         ========================= */
 
@@ -551,7 +612,7 @@
     <header class="header">
 
         <div class="logo">
-            SN
+            <span>SN</span>
         </div>
 
 
