@@ -890,7 +890,7 @@ cropBtn.addEventListener(
     originalImage =
       canvas.toDataURL(
         "image/jpeg",
-        0.99
+        0.98
       );
 
     previewImage.src =
@@ -962,40 +962,6 @@ selfieSegmentation.setOptions({
 });
 
 
-/*
-  PROFESSIONAL PHOTO ENHANCEMENT
-*/
-
-function enhanceProfessionalPhoto(
-  sourceCanvas,
-  ctx,
-  width,
-  height
-){
-
-  /*
-    Natural brightness,
-    contrast and color enhancement.
-    No artificial beauty filter.
-  */
-
-  ctx.filter =
-    "brightness(1.02) contrast(1.07) saturate(1.03)";
-
-  ctx.drawImage(
-    sourceCanvas,
-    0,
-    0,
-    width,
-    height
-  );
-
-  ctx.filter =
-    "none";
-
-}
-
-
 /* PROCESS PHOTO */
 
 async function processPhoto(){
@@ -1011,13 +977,6 @@ async function processPhoto(){
         img.onload =
           async function(){
 
-            /*
-              HIGH RESOLUTION OUTPUT
-
-              2400 × 3000
-              = 1.2 × 1.5 aspect ratio
-            */
-
             const width = 2400;
 
             const height =
@@ -1025,9 +984,8 @@ async function processPhoto(){
                 width * 1.25
               );
 
-
             /*
-              HIGH QUALITY SOURCE CANVAS
+              ENHANCEMENT CANVAS
             */
 
             const sourceCanvas =
@@ -1040,12 +998,7 @@ async function processPhoto(){
               height;
 
             const sourceCtx =
-              sourceCanvas.getContext(
-                "2d",
-                {
-                  alpha:false
-                }
-              );
+              sourceCanvas.getContext("2d");
 
             sourceCtx.imageSmoothingEnabled =
               true;
@@ -1053,13 +1006,12 @@ async function processPhoto(){
             sourceCtx.imageSmoothingQuality =
               "high";
 
-
             /*
-              PROFESSIONAL NATURAL ENHANCEMENT
+              Mild HD visual enhancement
             */
 
             sourceCtx.filter =
-              "brightness(1.02) contrast(1.07) saturate(1.03)";
+              "brightness(1.04) contrast(1.08) saturate(1.04)";
 
             sourceCtx.drawImage(
               img,
@@ -1090,12 +1042,7 @@ async function processPhoto(){
                   height;
 
                 const ctx =
-                  outputCanvas.getContext(
-                    "2d",
-                    {
-                      alpha:false
-                    }
-                  );
+                  outputCanvas.getContext("2d");
 
                 ctx.imageSmoothingEnabled =
                   true;
@@ -1105,9 +1052,10 @@ async function processPhoto(){
 
 
                 /*
-                  BACKGROUND REMOVE
+                  BACKGROUND REMOVE + WHITE BACKGROUND
                 */
 
+                /* Draw the person mask first. */
                 ctx.drawImage(
                   results.segmentationMask,
                   0,
@@ -1116,26 +1064,19 @@ async function processPhoto(){
                   height
                 );
 
-
-                /*
-                  KEEP PERSON
-                */
-
+                /* Keep only the person from the original photo. */
                 ctx.globalCompositeOperation =
                   "source-in";
 
-                enhanceProfessionalPhoto(
+                ctx.drawImage(
                   sourceCanvas,
-                  ctx,
+                  0,
+                  0,
                   width,
                   height
                 );
 
-
-                /*
-                  WHITE BACKGROUND
-                */
-
+                /* Put a solid white background behind the person. */
                 ctx.globalCompositeOperation =
                   "destination-over";
 
@@ -1154,7 +1095,7 @@ async function processPhoto(){
 
 
                 /*
-                  VERY THIN BLACK BORDER
+                  BLACK BORDER
                 */
 
                 ctx.strokeStyle =
@@ -1172,7 +1113,7 @@ async function processPhoto(){
 
 
                 /*
-                  MAXIMUM JPEG QUALITY
+                  FINAL IMAGE
                 */
 
                 const data =
