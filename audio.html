@@ -48,11 +48,12 @@
     input {
         width: 100%;
         padding: 14px;
-        font-size: 20px;
+        font-size: 19px;
         border: 1px solid #ccc;
         border-radius: 10px;
         outline: none;
         text-align: center;
+        margin-bottom: 16px;
     }
 
     input:focus {
@@ -61,7 +62,7 @@
 
     button {
         width: 100%;
-        margin-top: 20px;
+        margin-top: 5px;
         padding: 14px;
         border: none;
         border-radius: 10px;
@@ -114,6 +115,15 @@
 
     <h2>Customer Audio</h2>
 
+    <label for="customerName">Customer Name</label>
+
+    <input
+        type="text"
+        id="customerName"
+        placeholder="जैसे रुपेश"
+        autocomplete="off"
+    >
+
     <label for="amount">Amount दर्ज करें</label>
 
     <input
@@ -142,7 +152,7 @@
 
 let voices = [];
 
-// उपलब्ध आवाजें लोड करें
+// उपलब्ध voices लोड करें
 function loadVoices() {
     voices = speechSynthesis.getVoices();
 }
@@ -151,24 +161,30 @@ speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
 
-// Female Hindi voice खोजने की कोशिश
+// Hindi Female voice चुनने की कोशिश
 function getFemaleHindiVoice() {
 
-    // पहले Hindi female voice
-    let voice = voices.find(v =>
-        v.lang.toLowerCase().startsWith("hi") &&
-        (
-            v.name.toLowerCase().includes("female") ||
-            v.name.toLowerCase().includes("woman") ||
-            v.name.toLowerCase().includes("google")
-        )
-    );
+    // पहले Hindi female voice खोजें
+    let voice = voices.find(v => {
+
+        const name = v.name.toLowerCase();
+        const lang = v.lang.toLowerCase();
+
+        return (
+            lang.startsWith("hi") &&
+            (
+                name.includes("female") ||
+                name.includes("woman") ||
+                name.includes("google")
+            )
+        );
+    });
 
     if (voice) {
         return voice;
     }
 
-    // कोई भी Hindi voice
+    // कोई Hindi voice
     voice = voices.find(v =>
         v.lang.toLowerCase().startsWith("hi")
     );
@@ -186,14 +202,197 @@ function getFemaleHindiVoice() {
 }
 
 
+// Number को Hindi शब्दों में बदलना
+function numberToHindiWords(num) {
+
+    const ones = [
+        "",
+        "एक",
+        "दो",
+        "तीन",
+        "चार",
+        "पाँच",
+        "छह",
+        "सात",
+        "आठ",
+        "नौ",
+        "दस",
+        "ग्यारह",
+        "बारह",
+        "तेरह",
+        "चौदह",
+        "पंद्रह",
+        "सोलह",
+        "सत्रह",
+        "अठारह",
+        "उन्नीस"
+    ];
+
+    const tens = [
+        "",
+        "",
+        "बीस",
+        "तीस",
+        "चालीस",
+        "पचास",
+        "साठ",
+        "सत्तर",
+        "अस्सी",
+        "नब्बे"
+    ];
+
+    num = parseInt(num);
+
+    if (num < 20) {
+        return ones[num];
+    }
+
+    if (num < 100) {
+        if (num % 10 === 0) {
+            return tens[Math.floor(num / 10)];
+        }
+
+        const special = {
+            21: "इक्कीस",
+            22: "बाईस",
+            23: "तेईस",
+            24: "चौबीस",
+            25: "पच्चीस",
+            26: "छब्बीस",
+            27: "सत्ताईस",
+            28: "अट्ठाईस",
+            29: "उनतीस",
+            31: "इकतीस",
+            32: "बत्तीस",
+            33: "तैंतीस",
+            34: "चौंतीस",
+            35: "पैंतीस",
+            36: "छत्तीस",
+            37: "सैंतीस",
+            38: "अड़तीस",
+            39: "उनतालीस",
+            41: "इकतालीस",
+            42: "बयालीस",
+            43: "तैंतालीस",
+            44: "चवालीस",
+            45: "पैंतालीस",
+            46: "छियालीस",
+            47: "सैंतालीस",
+            48: "अड़तालीस",
+            49: "उनचास",
+            51: "इक्यावन",
+            52: "बावन",
+            53: "तिरपन",
+            54: "चौवन",
+            55: "पचपन",
+            56: "छप्पन",
+            57: "सत्तावन",
+            58: "अट्ठावन",
+            59: "उनसठ",
+            61: "इकसठ",
+            62: "बासठ",
+            63: "तिरसठ",
+            64: "चौंसठ",
+            65: "पैंसठ",
+            66: "छियासठ",
+            67: "सड़सठ",
+            68: "अड़सठ",
+            69: "उनहत्तर",
+            71: "इकहत्तर",
+            72: "बहत्तर",
+            73: "तिहत्तर",
+            74: "चौहत्तर",
+            75: "पचहत्तर",
+            76: "छिहत्तर",
+            77: "सतहत्तर",
+            78: "अठहत्तर",
+            79: "उनासी",
+            81: "इक्यासी",
+            82: "बयासी",
+            83: "तिरासी",
+            84: "चौरासी",
+            85: "पचासी",
+            86: "छियासी",
+            87: "सत्तासी",
+            88: "अट्ठासी",
+            89: "नवासी",
+            91: "इक्यानबे",
+            92: "बानबे",
+            93: "तिरानबे",
+            94: "चौरानबे",
+            95: "पचानबे",
+            96: "छियानबे",
+            97: "सत्तानबे",
+            98: "अट्ठानबे",
+            99: "निन्यानबे"
+        };
+
+        return special[num] || (tens[Math.floor(num / 10)] + " " + ones[num % 10]);
+    }
+
+    if (num < 1000) {
+
+        if (num % 100 === 0) {
+            return ones[Math.floor(num / 100)] + " सौ";
+        }
+
+        return (
+            ones[Math.floor(num / 100)] +
+            " सौ " +
+            numberToHindiWords(num % 100)
+        );
+    }
+
+    if (num < 100000) {
+
+        const thousand = Math.floor(num / 1000);
+        const remainder = num % 1000;
+
+        let result = numberToHindiWords(thousand) + " हज़ार";
+
+        if (remainder > 0) {
+            result += " " + numberToHindiWords(remainder);
+        }
+
+        return result;
+    }
+
+    if (num < 10000000) {
+
+        const lakh = Math.floor(num / 100000);
+        const remainder = num % 100000;
+
+        let result = numberToHindiWords(lakh) + " लाख";
+
+        if (remainder > 0) {
+            result += " " + numberToHindiWords(remainder);
+        }
+
+        return result;
+    }
+
+    // बड़ी राशि के लिए numeric रूप
+    return num.toLocaleString("en-IN");
+}
+
+
 // START
 function startAudio() {
 
+    const nameInput = document.getElementById("customerName");
     const amountInput = document.getElementById("amount");
+
+    const name = nameInput.value.trim();
     const amount = amountInput.value.trim();
 
     const status = document.getElementById("status");
     const messageBox = document.getElementById("message");
+
+    if (!name) {
+        alert("कृपया Customer Name दर्ज करें।");
+        nameInput.focus();
+        return;
+    }
 
     if (!amount) {
         alert("कृपया Amount दर्ज करें।");
@@ -207,15 +406,17 @@ function startAudio() {
         return;
     }
 
-    // पहले से चल रही आवाज बंद करें
+    // पहले चल रही आवाज बंद करें
     speechSynthesis.cancel();
 
-    const formattedAmount = Number(amount).toLocaleString("en-IN");
+    const hindiAmount = numberToHindiWords(Number(amount));
 
     const text =
-        "प्रिय ग्राहक, आपके खाते से " +
-        formattedAmount +
-        " रुपये की राशि निकाल दि गई  है।";
+        "प्रिय ग्राहक, " +
+        name +
+        " जी, आपके खाते से " +
+        hindiAmount +
+        " रुपये की राशि निकाल दी गई है।";
 
     messageBox.innerText = text;
     messageBox.style.display = "block";
@@ -224,16 +425,15 @@ function startAudio() {
 
     utterance.lang = "hi-IN";
 
-    // Female voice चुनने की कोशिश
     const selectedVoice = getFemaleHindiVoice();
 
     if (selectedVoice) {
         utterance.voice = selectedVoice;
     }
 
-    // आवाज की सेटिंग
-    utterance.rate = 0.90;
-    utterance.pitch = 1.15;
+    // Natural voice settings
+    utterance.rate = 0.82;
+    utterance.pitch = 1.08;
     utterance.volume = 1.0;
 
     utterance.onstart = function () {
