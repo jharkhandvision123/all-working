@@ -890,7 +890,7 @@ cropBtn.addEventListener(
     originalImage =
       canvas.toDataURL(
         "image/jpeg",
-        0.98
+        0.99
       );
 
     previewImage.src =
@@ -962,6 +962,40 @@ selfieSegmentation.setOptions({
 });
 
 
+/*
+  PROFESSIONAL PHOTO ENHANCEMENT
+*/
+
+function enhanceProfessionalPhoto(
+  sourceCanvas,
+  ctx,
+  width,
+  height
+){
+
+  /*
+    Natural brightness,
+    contrast and color enhancement.
+    No artificial beauty filter.
+  */
+
+  ctx.filter =
+    "brightness(1.02) contrast(1.07) saturate(1.03)";
+
+  ctx.drawImage(
+    sourceCanvas,
+    0,
+    0,
+    width,
+    height
+  );
+
+  ctx.filter =
+    "none";
+
+}
+
+
 /* PROCESS PHOTO */
 
 async function processPhoto(){
@@ -977,15 +1011,23 @@ async function processPhoto(){
         img.onload =
           async function(){
 
-            const width = 1800;
+            /*
+              HIGH RESOLUTION OUTPUT
+
+              2400 × 3000
+              = 1.2 × 1.5 aspect ratio
+            */
+
+            const width = 2400;
 
             const height =
               Math.round(
                 width * 1.25
               );
 
+
             /*
-              ENHANCEMENT CANVAS
+              HIGH QUALITY SOURCE CANVAS
             */
 
             const sourceCanvas =
@@ -998,7 +1040,12 @@ async function processPhoto(){
               height;
 
             const sourceCtx =
-              sourceCanvas.getContext("2d");
+              sourceCanvas.getContext(
+                "2d",
+                {
+                  alpha:false
+                }
+              );
 
             sourceCtx.imageSmoothingEnabled =
               true;
@@ -1006,12 +1053,13 @@ async function processPhoto(){
             sourceCtx.imageSmoothingQuality =
               "high";
 
+
             /*
-              Mild HD visual enhancement
+              PROFESSIONAL NATURAL ENHANCEMENT
             */
 
             sourceCtx.filter =
-              "brightness(1.04) contrast(1.08) saturate(1.04)";
+              "brightness(1.02) contrast(1.07) saturate(1.03)";
 
             sourceCtx.drawImage(
               img,
@@ -1042,7 +1090,12 @@ async function processPhoto(){
                   height;
 
                 const ctx =
-                  outputCanvas.getContext("2d");
+                  outputCanvas.getContext(
+                    "2d",
+                    {
+                      alpha:false
+                    }
+                  );
 
                 ctx.imageSmoothingEnabled =
                   true;
@@ -1052,10 +1105,9 @@ async function processPhoto(){
 
 
                 /*
-                  BACKGROUND REMOVE + WHITE BACKGROUND
+                  BACKGROUND REMOVE
                 */
 
-                /* Draw the person mask first. */
                 ctx.drawImage(
                   results.segmentationMask,
                   0,
@@ -1064,19 +1116,26 @@ async function processPhoto(){
                   height
                 );
 
-                /* Keep only the person from the original photo. */
+
+                /*
+                  KEEP PERSON
+                */
+
                 ctx.globalCompositeOperation =
                   "source-in";
 
-                ctx.drawImage(
+                enhanceProfessionalPhoto(
                   sourceCanvas,
-                  0,
-                  0,
+                  ctx,
                   width,
                   height
                 );
 
-                /* Put a solid white background behind the person. */
+
+                /*
+                  WHITE BACKGROUND
+                */
+
                 ctx.globalCompositeOperation =
                   "destination-over";
 
@@ -1095,7 +1154,7 @@ async function processPhoto(){
 
 
                 /*
-                  BLACK BORDER
+                  VERY THIN BLACK BORDER
                 */
 
                 ctx.strokeStyle =
@@ -1113,13 +1172,13 @@ async function processPhoto(){
 
 
                 /*
-                  FINAL IMAGE
+                  MAXIMUM JPEG QUALITY
                 */
 
                 const data =
                   outputCanvas.toDataURL(
                     "image/jpeg",
-                    0.99
+                    1.0
                   );
 
                 resolve(data);
