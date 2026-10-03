@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Customer Audio Notification</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #f2f4f7;
+        font-family: Arial, sans-serif;
+    }
+
+    .box {
+        width: 92%;
+        max-width: 420px;
+        background: white;
+        padding: 30px 25px;
+        border-radius: 18px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        text-align: center;
+    }
+
+    h2 {
+        margin-top: 0;
+        margin-bottom: 25px;
+        color: #222;
+    }
+
+    label {
+        display: block;
+        text-align: left;
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        font-size: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        outline: none;
+        text-align: center;
+    }
+
+    input:focus {
+        border-color: #1976d2;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 20px;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #1976d2;
+        color: white;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    button:hover {
+        background: #125ca8;
+    }
+
+    button:active {
+        transform: scale(0.98);
+    }
+
+    .stop-btn {
+        background: #d32f2f;
+        margin-top: 10px;
+    }
+
+    .stop-btn:hover {
+        background: #b71c1c;
+    }
+
+    #status {
+        margin-top: 18px;
+        min-height: 24px;
+        font-size: 14px;
+        color: #555;
+    }
+
+    #message {
+        margin-top: 15px;
+        padding: 12px;
+        border-radius: 10px;
+        background: #f5f5f5;
+        font-size: 15px;
+        line-height: 1.6;
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+
+    <h2>Customer Audio</h2>
+
+    <label for="amount">Amount दर्ज करें</label>
+
+    <input
+        type="number"
+        id="amount"
+        placeholder="जैसे 2000"
+        min="1"
+        inputmode="numeric"
+    >
+
+    <button onclick="startAudio()">
+        ▶ START
+    </button>
+
+    <button class="stop-btn" onclick="stopAudio()">
+        ■ STOP
+    </button>
+
+    <div id="message"></div>
+
+    <div id="status"></div>
+
+</div>
+
+<script>
+
+let voices = [];
+
+// उपलब्ध आवाजें लोड करें
+function loadVoices() {
+    voices = speechSynthesis.getVoices();
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+
+// Female Hindi voice खोजने की कोशिश
+function getFemaleHindiVoice() {
+
+    // पहले Hindi female voice
+    let voice = voices.find(v =>
+        v.lang.toLowerCase().startsWith("hi") &&
+        (
+            v.name.toLowerCase().includes("female") ||
+            v.name.toLowerCase().includes("woman") ||
+            v.name.toLowerCase().includes("google")
+        )
+    );
+
+    if (voice) {
+        return voice;
+    }
+
+    // कोई भी Hindi voice
+    voice = voices.find(v =>
+        v.lang.toLowerCase().startsWith("hi")
+    );
+
+    if (voice) {
+        return voice;
+    }
+
+    // Indian English voice
+    voice = voices.find(v =>
+        v.lang.toLowerCase() === "en-in"
+    );
+
+    return voice || voices[0];
+}
+
+
+// START
+function startAudio() {
+
+    const amountInput = document.getElementById("amount");
+    const amount = amountInput.value.trim();
+
+    const status = document.getElementById("status");
+    const messageBox = document.getElementById("message");
+
+    if (!amount) {
+        alert("कृपया Amount दर्ज करें।");
+        amountInput.focus();
+        return;
+    }
+
+    if (Number(amount) <= 0) {
+        alert("कृपया सही Amount दर्ज करें।");
+        amountInput.focus();
+        return;
+    }
+
+    // पहले से चल रही आवाज बंद करें
+    speechSynthesis.cancel();
+
+    const formattedAmount = Number(amount).toLocaleString("en-IN");
+
+    const text =
+        "प्रिय ग्राहक, आपके खाते से " +
+        formattedAmount +
+        " रुपये की राशि निकाली गई है।";
+
+    messageBox.innerText = text;
+    messageBox.style.display = "block";
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    utterance.lang = "hi-IN";
+
+    // Female voice चुनने की कोशिश
+    const selectedVoice = getFemaleHindiVoice();
+
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+    }
+
+    // आवाज की सेटिंग
+    utterance.rate = 0.90;
+    utterance.pitch = 1.15;
+    utterance.volume = 1.0;
+
+    utterance.onstart = function () {
+        status.innerText = "🔊 Audio चल रहा है...";
+    };
+
+    utterance.onend = function () {
+        status.innerText = "✓ Audio पूरा हो गया।";
+    };
+
+    utterance.onerror = function () {
+        status.innerText = "Audio चलाने में समस्या हुई।";
+    };
+
+    speechSynthesis.speak(utterance);
+}
+
+
+// STOP
+function stopAudio() {
+
+    speechSynthesis.cancel();
+
+    document.getElementById("status").innerText =
+        "■ Audio रोक दिया गया।";
+}
+
+</script>
+
+</body>
+</html>
