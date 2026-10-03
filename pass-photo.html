@@ -1055,26 +1055,88 @@ async function processPhoto(){
                   BACKGROUND REMOVE + WHITE BACKGROUND
                 */
 
-                /* Draw the person mask first. */
-                ctx.drawImage(
-                  results.segmentationMask,
-                  0,
-                  0,
-                  width,
-                  height
-                );
+              /* PERSON MASK */
 
-                /* Keep only the person from the original photo. */
-                ctx.globalCompositeOperation =
-                  "source-in";
+const maskCanvas =
+  document.createElement("canvas");
 
-                ctx.drawImage(
-                  sourceCanvas,
-                  0,
-                  0,
-                  width,
-                  height
-                );
+maskCanvas.width =
+  width;
+
+maskCanvas.height =
+  height;
+
+const maskCtx =
+  maskCanvas.getContext("2d");
+
+maskCtx.imageSmoothingEnabled =
+  true;
+
+maskCtx.imageSmoothingQuality =
+  "high";
+
+
+/*
+  Draw segmentation mask
+*/
+
+maskCtx.drawImage(
+  results.segmentationMask,
+  0,
+  0,
+  width,
+  height
+);
+
+
+/*
+  Refine mask edges
+  ताकि बाल, चेहरा और कपड़ों
+  के किनारे ज्यादा natural रहें।
+*/
+
+maskCtx.filter =
+  "blur(0.6px)";
+
+maskCtx.drawImage(
+  maskCanvas,
+  0,
+  0,
+  width,
+  height
+);
+
+maskCtx.filter =
+  "none";
+
+
+/*
+  Draw refined mask
+*/
+
+ctx.drawImage(
+  maskCanvas,
+  0,
+  0,
+  width,
+  height
+);
+
+
+/*
+  Keep original face + clothes
+*/
+
+ctx.globalCompositeOperation =
+  "source-in";
+
+ctx.drawImage(
+  sourceCanvas,
+  0,
+  0,
+  width,
+  height
+);
 
                 /* Put a solid white background behind the person. */
                 ctx.globalCompositeOperation =
