@@ -48,12 +48,11 @@
     input {
         width: 100%;
         padding: 14px;
-        font-size: 19px;
+        font-size: 20px;
         border: 1px solid #ccc;
         border-radius: 10px;
         outline: none;
         text-align: center;
-        margin-bottom: 16px;
     }
 
     input:focus {
@@ -62,7 +61,7 @@
 
     button {
         width: 100%;
-        margin-top: 5px;
+        margin-top: 20px;
         padding: 14px;
         border: none;
         border-radius: 10px;
@@ -107,44 +106,36 @@
         display: none;
     }
 </style>
+
 </head>
 
 <body>
 
 <div class="box">
 
-    <h2>Customer Audio</h2>
+<h2>Customer Audio</h2>
 
-    <label for="customerName">Customer Name</label>
+<label for="amount">Amount दर्ज करें</label>
 
-    <input
-        type="text"
-        id="customerName"
-        placeholder="जैसे रुपेश"
-        autocomplete="off"
-    >
+<input
+    type="number"
+    id="amount"
+    placeholder="जैसे 2000"
+    min="1"
+    inputmode="numeric"
+>
 
-    <label for="amount">Amount दर्ज करें</label>
+<button onclick="startAudio()">
+    ▶ START
+</button>
 
-    <input
-        type="number"
-        id="amount"
-        placeholder="जैसे 2000"
-        min="1"
-        inputmode="numeric"
-    >
+<button class="stop-btn" onclick="stopAudio()">
+    ■ STOP
+</button>
 
-    <button onclick="startAudio()">
-        ▶ START
-    </button>
+<div id="message"></div>
 
-    <button class="stop-btn" onclick="stopAudio()">
-        ■ STOP
-    </button>
-
-    <div id="message"></div>
-
-    <div id="status"></div>
+<div id="status"></div>
 
 </div>
 
@@ -152,7 +143,7 @@
 
 let voices = [];
 
-// उपलब्ध voices लोड करें
+// उपलब्ध आवाजें लोड करें
 function loadVoices() {
     voices = speechSynthesis.getVoices();
 }
@@ -161,10 +152,21 @@ speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
 
-// Hindi Female voice चुनने की कोशिश
+// बेहतर Female Hindi voice चुनें
 function getFemaleHindiVoice() {
 
-    // पहले Hindi female voice खोजें
+    const femaleKeywords = [
+        "female",
+        "woman",
+        "girl",
+        "samantha",
+        "swara",
+        "heera",
+        "google हिन्दी",
+        "google hindi"
+    ];
+
+    // Hindi Female voice को प्राथमिकता
     let voice = voices.find(v => {
 
         const name = v.name.toLowerCase();
@@ -172,10 +174,8 @@ function getFemaleHindiVoice() {
 
         return (
             lang.startsWith("hi") &&
-            (
-                name.includes("female") ||
-                name.includes("woman") ||
-                name.includes("google")
+            femaleKeywords.some(keyword =>
+                name.includes(keyword)
             )
         );
     });
@@ -248,6 +248,7 @@ function numberToHindiWords(num) {
     }
 
     if (num < 100) {
+
         if (num % 10 === 0) {
             return tens[Math.floor(num / 10)];
         }
@@ -327,7 +328,11 @@ function numberToHindiWords(num) {
             99: "निन्यानबे"
         };
 
-        return special[num] || (tens[Math.floor(num / 10)] + " " + ones[num % 10]);
+        return special[num] || (
+            tens[Math.floor(num / 10)] +
+            " " +
+            ones[num % 10]
+        );
     }
 
     if (num < 1000) {
@@ -348,10 +353,14 @@ function numberToHindiWords(num) {
         const thousand = Math.floor(num / 1000);
         const remainder = num % 1000;
 
-        let result = numberToHindiWords(thousand) + " हज़ार";
+        let result =
+            numberToHindiWords(thousand) +
+            " हज़ार";
 
         if (remainder > 0) {
-            result += " " + numberToHindiWords(remainder);
+            result +=
+                " " +
+                numberToHindiWords(remainder);
         }
 
         return result;
@@ -362,16 +371,19 @@ function numberToHindiWords(num) {
         const lakh = Math.floor(num / 100000);
         const remainder = num % 100000;
 
-        let result = numberToHindiWords(lakh) + " लाख";
+        let result =
+            numberToHindiWords(lakh) +
+            " लाख";
 
         if (remainder > 0) {
-            result += " " + numberToHindiWords(remainder);
+            result +=
+                " " +
+                numberToHindiWords(remainder);
         }
 
         return result;
     }
 
-    // बड़ी राशि के लिए numeric रूप
     return num.toLocaleString("en-IN");
 }
 
@@ -379,16 +391,11 @@ function numberToHindiWords(num) {
 // START
 function startAudio() {
 
-     
     const amountInput = document.getElementById("amount");
-
-    const name = nameInput.value.trim();
     const amount = amountInput.value.trim();
 
     const status = document.getElementById("status");
     const messageBox = document.getElementById("message");
-
-    
 
     if (!amount) {
         alert("कृपया Amount दर्ज करें।");
@@ -402,46 +409,51 @@ function startAudio() {
         return;
     }
 
-    // पहले चल रही आवाज बंद करें
+    // पहले से चल रही आवाज बंद करें
     speechSynthesis.cancel();
 
-    const hindiAmount = numberToHindiWords(Number(amount));
+    const hindiAmount =
+        numberToHindiWords(Number(amount));
 
     const text =
-        "प्रिय ग्राहक, " 
-
-        "  आपके खाते से " +
+        "प्रिय ग्राहक, आपके खाते से " +
         hindiAmount +
-        " रुपये की राशि निकाल दी गई है।";
+        " रुपये की राशि निकाल दी  गई है। dhanyavad ";
 
     messageBox.innerText = text;
     messageBox.style.display = "block";
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    const utterance =
+        new SpeechSynthesisUtterance(text);
 
     utterance.lang = "hi-IN";
 
-    const selectedVoice = getFemaleHindiVoice();
+    // बेहतर Female voice
+    const selectedVoice =
+        getFemaleHindiVoice();
 
     if (selectedVoice) {
         utterance.voice = selectedVoice;
     }
 
-    // Natural voice settings
-    utterance.rate = 0.82;
-    utterance.pitch = 1.08;
+    // Natural और साफ बोलने की सेटिंग
+    utterance.rate = 0.78;
+    utterance.pitch = 1.12;
     utterance.volume = 1.0;
 
     utterance.onstart = function () {
-        status.innerText = "🔊 Audio चल रहा है...";
+        status.innerText =
+            "🔊 Audio चल रहा है...";
     };
 
     utterance.onend = function () {
-        status.innerText = "✓ Audio पूरा हो गया।";
+        status.innerText =
+            "✓ Audio पूरा हो गया।";
     };
 
     utterance.onerror = function () {
-        status.innerText = "Audio चलाने में समस्या हुई।";
+        status.innerText =
+            "Audio चलाने में समस्या हुई।";
     };
 
     speechSynthesis.speak(utterance);
