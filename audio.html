@@ -388,10 +388,7 @@ function startAudio() {
     const status = document.getElementById("status");
     const messageBox = document.getElementById("message");
 
-    if (!name) {
-        alert("कृपया Customer Name दर्ज करें।");
-        nameInput.focus();
-        return;
+   
     }
 
     if (!amount) {
@@ -414,7 +411,7 @@ function startAudio() {
     const text =
         "प्रिय ग्राहक, " +
         name +
-        " जी, आपके खाते से " +
+        " आपके खाते से " +
         hindiAmount +
         " रुपये की राशि निकाल दी गई है।";
 
