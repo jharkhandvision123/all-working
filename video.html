@@ -4,10 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Cinematic Mirror Photo</title>
+<title>Text To Voice</title>
 
 <style>
-
 *{
     box-sizing:border-box;
 }
@@ -15,510 +14,303 @@
 body{
     margin:0;
     min-height:100vh;
-    overflow:hidden;
-
     font-family:Arial,sans-serif;
-
-    background:
-    radial-gradient(
-        circle at 50% 25%,
-        #ffffff 0%,
-        #eef1f5 40%,
-        #c8cfd8 100%
-    );
-
+    background:linear-gradient(135deg,#fff,#f1f1f1);
     display:flex;
     justify-content:center;
     align-items:center;
+    padding:20px;
 }
 
-/* MAIN SCENE */
-
-.scene{
-    width:min(95vw,700px);
-    height:min(95vh,900px);
-
-    position:relative;
-
-    display:flex;
-    justify-content:center;
-    align-items:center;
+.container{
+    width:100%;
+    max-width:700px;
+    background:white;
+    border-radius:22px;
+    padding:25px;
+    box-shadow:0 10px 35px rgba(0,0,0,.15);
 }
 
-/* TITLE */
+h1{
+    text-align:center;
+    margin-top:0;
+    font-size:30px;
+    background:linear-gradient(90deg,#ff9933,#138808);
+    -webkit-background-clip:text;
+    color:transparent;
+}
 
-.title{
-    position:absolute;
-    top:15px;
-    z-index:20;
+textarea{
+    width:100%;
+    height:220px;
+    resize:vertical;
+    border:2px solid #ddd;
+    border-radius:15px;
+    padding:18px;
+    font-size:18px;
+    outline:none;
+}
 
-    padding:10px 20px;
+textarea:focus{
+    border-color:#138808;
+}
 
-    border-radius:30px;
-
-    background:rgba(255,255,255,.65);
-
-    backdrop-filter:blur(12px);
-
-    box-shadow:
-    0 8px 30px rgba(0,0,0,.12);
-
-    font-size:17px;
+label{
+    display:block;
+    margin-top:18px;
+    margin-bottom:7px;
     font-weight:bold;
-
-    color:#222;
 }
 
-/* PHOTO AREA */
-
-.photo-area{
-    position:relative;
-
-    width:94%;
-    height:82%;
-
-    display:flex;
-    justify-content:center;
-    align-items:flex-start;
-
-    overflow:hidden;
-
-    border-radius:20px;
-}
-
-/* MAIN PHOTO */
-
-.main-photo{
-    position:absolute;
-
-    top:0;
-
+select,
+input[type="range"]{
     width:100%;
-    height:70%;
-
-    object-fit:contain;
-
-    z-index:5;
-
-    filter:
-    drop-shadow(
-        0 20px 25px
-        rgba(0,0,0,.25)
-    );
-
-    transition:
-    transform 1s ease;
 }
 
-/* MIRROR AREA */
-
-.mirror-area{
-
-    position:absolute;
-
-    left:0;
-    right:0;
-
-    top:67%;
-
-    height:33%;
-
-    overflow:hidden;
-
-    z-index:2;
-
+select{
+    padding:12px;
+    border-radius:10px;
+    border:1px solid #ccc;
+    font-size:16px;
 }
 
-/* REFLECTION */
-
-.reflection{
-
-    width:100%;
-    height:100%;
-
-    object-fit:contain;
-
-    transform:
-
-        scaleY(-1);
-
-    opacity:.35;
-
-    filter:
-        blur(1.5px)
-        brightness(.88)
-        saturate(.75);
-
-    -webkit-mask-image:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,.85),
-            rgba(0,0,0,.35),
-            transparent 90%
-        );
-
-    mask-image:
-        linear-gradient(
-            to bottom,
-            rgba(0,0,0,.85),
-            rgba(0,0,0,.35),
-            transparent 90%
-        );
-
-}
-
-/* MIRROR GLASS */
-
-.glass{
-
-    position:absolute;
-
-    left:0;
-    right:0;
-    bottom:0;
-
-    height:100%;
-
-    z-index:4;
-
-    pointer-events:none;
-
-    background:
-
-        linear-gradient(
-            to bottom,
-            rgba(255,255,255,.05),
-            rgba(255,255,255,.18),
-            rgba(255,255,255,.04)
-        ),
-
-        linear-gradient(
-            110deg,
-            transparent 20%,
-            rgba(255,255,255,.35) 45%,
-            transparent 58%
-        );
-
-    mix-blend-mode:screen;
-
-    animation:
-        mirrorLight 6s
-        ease-in-out
-        infinite;
-}
-
-/* FLOOR SHADOW */
-
-.floor{
-
-    position:absolute;
-
-    left:5%;
-    right:5%;
-
-    bottom:5%;
-
-    height:20%;
-
-    z-index:1;
-
-    background:
-        radial-gradient(
-            ellipse,
-            rgba(0,0,0,.25),
-            transparent 70%
-        );
-
-    filter:blur(12px);
-
-    transform:
-        perspective(500px)
-        rotateX(65deg);
-
-}
-
-/* CONTROLS */
-
-.controls{
-
-    position:absolute;
-
-    bottom:10px;
-
-    z-index:30;
-
+.buttons{
     display:flex;
-
-    gap:8px;
-
+    gap:10px;
     flex-wrap:wrap;
-
-    justify-content:center;
+    margin-top:20px;
 }
 
 button{
-
+    flex:1;
+    min-width:140px;
+    padding:14px;
     border:0;
-
-    padding:11px 16px;
-
-    border-radius:10px;
-
-    background:#111;
-
-    color:white;
-
-    font-size:14px;
-
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
     cursor:pointer;
-
-    box-shadow:
-        0 5px 15px rgba(0,0,0,.2);
 }
 
-button:hover{
-    transform:translateY(-1px);
+.speak{
+    background:#138808;
+    color:white;
 }
 
-.upload{
-
-    background:white;
-
-    color:#111;
-
-    border:1px solid #bbb;
-
-    padding:9px;
-
-    border-radius:10px;
-
+.stop{
+    background:#d62828;
+    color:white;
 }
 
-/* ANIMATION */
-
-@keyframes mirrorLight{
-
-    0%{
-        transform:translateX(-30%);
-        opacity:.25;
-    }
-
-    50%{
-        transform:translateX(20%);
-        opacity:.65;
-    }
-
-    100%{
-        transform:translateX(60%);
-        opacity:.25;
-    }
-
+.clear{
+    background:#333;
+    color:white;
 }
 
-@keyframes cinematicZoom{
-
-    0%{
-        transform:
-            scale(1)
-            translateY(0);
-    }
-
-    100%{
-        transform:
-            scale(1.035)
-            translateY(-5px);
-    }
-
+button:active{
+    transform:scale(.98);
 }
 
-/* MOBILE */
-
-@media(max-width:600px){
-
-    .scene{
-        width:100vw;
-        height:95vh;
-    }
-
-    .photo-area{
-        width:96%;
-    }
-
-    .title{
-        font-size:14px;
-    }
-
-    button{
-        padding:9px 12px;
-        font-size:13px;
-    }
-
+.status{
+    margin-top:18px;
+    text-align:center;
+    font-size:14px;
+    color:#555;
 }
-
 </style>
-
 </head>
 
 <body>
 
-<div class="scene">
+<div class="container">
 
-    <div class="title">
-        ✨ Cinematic Mirror Reflection
-    </div>
+<h1>🎙️ Text To Voice</h1>
 
+<textarea id="text"
+placeholder="यहाँ कुछ भी लिखें..."></textarea>
 
-    <div class="photo-area">
+<label>🎤 Voice चुनें</label>
 
-        <!-- MAIN PHOTO -->
+<select id="voiceSelect">
+    <option>Voice loading...</option>
+</select>
 
-        <img
-            id="mainPhoto"
-            class="main-photo"
-            src="photo.png"
-            alt="Photo"
-        >
+<label>⚡ Voice Speed</label>
 
+<input
+type="range"
+id="speed"
+min="0.5"
+max="1.5"
+step="0.1"
+value="0.9"
+>
 
-        <!-- MIRROR -->
+<div class="buttons">
 
-        <div
-            id="mirrorArea"
-            class="mirror-area"
-        >
+<button class="speak" onclick="speakText()">
+▶ आवाज़ सुनें
+</button>
 
-            <img
-                id="reflection"
-                class="reflection"
-                src="photo.png"
-                alt=""
-            >
+<button class="stop" onclick="stopSpeech()">
+⏹ रोकें
+</button>
 
-            <div class="glass"></div>
-
-        </div>
-
-
-        <!-- FLOOR -->
-
-        <div class="floor"></div>
-
-    </div>
-
-
-    <!-- CONTROLS -->
-
-    <div class="controls">
-
-        <label class="upload">
-
-            📷 फोटो बदलें
-
-            <input
-                id="photoUpload"
-                type="file"
-                accept="image/*"
-                hidden
-            >
-
-        </label>
-
-
-        <button
-            onclick="toggleMirror()"
-        >
-            🪞 Mirror ON/OFF
-        </button>
-
-
-        <button
-            onclick="toggleMotion()"
-        >
-            🎬 Cinematic Motion
-        </button>
-
-    </div>
+<button class="clear" onclick="clearText()">
+🗑 साफ करें
+</button>
 
 </div>
 
+<div class="status" id="status">
+Ready
+</div>
+
+</div>
 
 <script>
 
-const upload =
-document.getElementById("photoUpload");
+const textBox = document.getElementById("text");
+const voiceSelect = document.getElementById("voiceSelect");
+const speed = document.getElementById("speed");
+const statusText = document.getElementById("status");
 
-const mainPhoto =
-document.getElementById("mainPhoto");
+let voices = [];
 
-const reflection =
-document.getElementById("reflection");
+function loadVoices(){
 
-const mirrorArea =
-document.getElementById("mirrorArea");
+    voices = speechSynthesis.getVoices();
 
-let mirrorOn = true;
+    voiceSelect.innerHTML = "";
 
-let motionOn = false;
+    if(voices.length === 0){
 
+        const option = document.createElement("option");
+        option.textContent = "Voice उपलब्ध नहीं";
+        voiceSelect.appendChild(option);
 
-/* PHOTO UPLOAD */
+        return;
+    }
 
-upload.addEventListener(
-    "change",
-    function(){
+    voices.forEach((voice,index)=>{
 
-        const file =
-        this.files[0];
+        const option = document.createElement("option");
 
-        if(!file){
-            return;
+        option.value = index;
+
+        let name = voice.name;
+
+        if(
+            /female|woman|girl|zira|samantha|susan|karen|google हिन्दी|google hindi/i
+            .test(name)
+        ){
+            name += " ⭐";
         }
 
-        const imageURL =
-        URL.createObjectURL(file);
+        option.textContent =
+            name + " (" + voice.lang + ")";
 
-        mainPhoto.src =
-        imageURL;
+        voiceSelect.appendChild(option);
 
-        reflection.src =
-        imageURL;
+    });
 
+    /*
+    Hindi voice को पहले चुनने की कोशिश
+    */
+
+    let hindiIndex = voices.findIndex(v =>
+        v.lang.toLowerCase().startsWith("hi")
+    );
+
+    if(hindiIndex >= 0){
+        voiceSelect.value = hindiIndex;
     }
-);
+
+}
+
+speechSynthesis.onvoiceschanged = loadVoices;
+
+loadVoices();
 
 
-/* MIRROR ON / OFF */
+function speakText(){
 
-function toggleMirror(){
+    const text = textBox.value.trim();
 
-    mirrorOn =
-    !mirrorOn;
+    if(!text){
 
-    mirrorArea.style.opacity =
-    mirrorOn ? "1" : "0";
+        alert("कृपया पहले कुछ लिखें।");
+
+        return;
+    }
+
+    speechSynthesis.cancel();
+
+    const utterance =
+        new SpeechSynthesisUtterance(text);
+
+    const selectedIndex =
+        parseInt(voiceSelect.value);
+
+    if(
+        !isNaN(selectedIndex) &&
+        voices[selectedIndex]
+    ){
+
+        utterance.voice =
+            voices[selectedIndex];
+
+        utterance.lang =
+            voices[selectedIndex].lang;
+    }
+
+    utterance.rate =
+        parseFloat(speed.value);
+
+    utterance.pitch = 1.05;
+
+    utterance.volume = 1;
+
+    utterance.onstart = function(){
+
+        statusText.textContent =
+            "🔊 आवाज़ चल रही है...";
+    };
+
+    utterance.onend = function(){
+
+        statusText.textContent =
+            "✅ आवाज़ पूरी हो गई";
+    };
+
+    utterance.onerror = function(){
+
+        statusText.textContent =
+            "❌ आवाज़ चलाने में समस्या हुई";
+    };
+
+    speechSynthesis.speak(utterance);
 
 }
 
 
-/* CINEMATIC MOTION */
+function stopSpeech(){
 
-function toggleMotion(){
+    speechSynthesis.cancel();
 
-    motionOn =
-    !motionOn;
+    statusText.textContent =
+        "⏹ आवाज़ रोक दी गई";
+}
 
-    if(motionOn){
 
-        mainPhoto.style.animation =
-        "cinematicZoom 5s ease-in-out infinite alternate";
+function clearText(){
 
-    }else{
+    speechSynthesis.cancel();
 
-        mainPhoto.style.animation =
-        "none";
+    textBox.value = "";
 
-    }
-
+    statusText.textContent =
+        "Ready";
 }
 
 </script>
