@@ -1,0 +1,706 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HD Photo & Document Editor</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+<style>
+*{box-sizing:border-box}
+:root{--blue:#0757c8;--bg:#edf2f8;--border:#d5deea}
+body{margin:0;background:var(--bg);font-family:Arial,"Noto Sans Devanagari",sans-serif;color:#17243a}
+header{background:linear-gradient(120deg,#063d91,#1688ed);color:white;padding:18px;text-align:center}
+header h1{margin:0 0 7px;font-size:24px}
+header p{margin:0;font-size:13px}
+.toolbar{background:white;padding:12px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;box-shadow:0 3px 12px #0001;position:sticky;top:0;z-index:5}
+button,.file-label,select,input[type=number],input[type=text]{
+  font:inherit;border:1px solid var(--border);border-radius:7px;padding:9px 11px
+}
+button,.file-label{background:var(--blue);color:white;border:0;cursor:pointer;font-weight:600}
+button:hover,.file-label:hover{filter:brightness(.92)}
+button.secondary{background:#e9f1ff;color:#104b9d;border:1px solid #cbdcff}
+button.danger{background:#c92c3a}
+button:disabled{opacity:.5;cursor:not-allowed}
+input[type=file]{display:none}
+select,input[type=number],input[type=text]{background:white;max-width:100%;min-width:0}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px;padding:14px;align-items:start}
+.panel{background:white;border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
+.panel h3{margin:0 0 12px;font-size:16px}
+.field{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+.field label{font-size:13px;font-weight:600}
+.row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.hint{font-size:12px;line-height:1.55;color:#61718a}
+#pages{display:flex;flex-direction:column;gap:20px;align-items:center;min-width:0}
+.page-wrap{width:100%;display:flex;flex-direction:column;align-items:center;gap:7px}
+.page-title{display:flex;justify-content:space-between;gap:8px;align-items:center;width:min(100%,794px)}
+.a4-page{position:relative;width:min(100%,794px);aspect-ratio:210/297;background:white;box-shadow:0 4px 22px #18283d24;overflow:hidden;container-type:inline-size}
+.a4-page.active-page{outline:3px solid #1688ed}
+.photo-item{position:absolute;display:block;object-fit:fill;border:1px dashed #8b9bb0;cursor:move;touch-action:none;user-select:none;background:#f8fafc}
+.photo-item.selected{outline:2px solid #087cff;outline-offset:1px;border:1px solid #087cff}
+.resize-handle{position:absolute;width:13px;height:13px;right:-2px;bottom:-2px;background:#087cff;border:2px solid white;border-radius:3px;cursor:nwse-resize;z-index:2}
+#status{padding:10px;border-radius:8px;background:#edf6ff;font-size:13px;line-height:1.5;white-space:pre-wrap}
+#cropModal{display:none;position:fixed;inset:0;background:#000b;z-index:20;align-items:center;justify-content:center;padding:15px}
+.modal{width:min(850px,100%);max-height:94vh;overflow:auto;background:white;border-radius:12px;padding:15px}
+#cropImage{display:block;max-width:100%;max-height:60vh;margin:auto}
+#cropStage{min-height:100px;text-align:center}
+footer{text-align:center;padding:20px;color:#66758a;font-size:12px}
+@media(max-width:800px){
+ .layout{grid-template-columns:1fr;padding:8px}
+ .toolbar{position:static}
+ header h1{font-size:20px}
+ .a4-page{width:100%}
+}
+@media print{
+ body{background:white}
+ header,.toolbar,aside,.page-title,footer,#cropModal{display:none!important}
+ .layout{display:block;padding:0}
+ #pages{gap:0}
+ .page-wrap{display:block;break-after:page;page-break-after:always}
+ .page-wrap:last-child{break-after:auto;page-break-after:auto}
+ .a4-page{width:210mm;height:297mm;aspect-ratio:auto;box-shadow:none;outline:none!important;overflow:hidden}
+ .photo-item{outline:none!important;border:0!important}
+ .resize-handle{display:none!important}
+ @page{size:A4 portrait;margin:0}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>HD Photo & Document Editor</h1>
+  <p>फोटो, डॉक्यूमेंट, A4, PDF, क्रॉप, रिसाइज और प्रिंट</p>
+</header>
+
+<div class="toolbar">
+  <label class="file-label" for="upload">＋ फोटो / फाइल अपलोड</label>
+  <input id="upload" type="file" accept="image/*,application/pdf">
+  <button class="secondary" id="pasteBtn">पेस्ट फोटो</button>
+  <button class="secondary" id="addPageBtn">＋ नया A4 पेज</button>
+  <button class="secondary" id="duplicateBtn">कॉपी बनाएं</button>
+  <button class="secondary" id="cropBtn">क्रॉप</button>
+  <button class="secondary" id="enhanceBtn">टेक्स्ट / फोटो इन्हैंस</button>
+  <button class="secondary" id="saveImageBtn">इमेज सेव</button>
+  <button id="pdfBtn">PDF बनाएं / डाउनलोड</button>
+  <button id="printBtn">प्रिंट</button>
+</div>
+
+<div class="layout">
+<aside>
+  <section class="panel">
+    <h3>① कार्ड साइज चुनें</h3>
+    <div class="field">
+      <label for="preset">डॉक्यूमेंट प्रकार</label>
+      <select id="preset">
+        <option value="other">Other — मैनुअल साइज</option>
+        <option value="aadhaar">आधार कार्ड — 85.60 × 53.98 mm</option>
+        <option value="pan">PAN कार्ड — 85.60 × 53.98 mm</option>
+        <option value="voter">वोटर कार्ड — 85.60 × 53.98 mm</option>
+      </select>
+    </div>
+    <p class="hint">कार्ड चुनने के बाद नया अपलोड किया गया आइटम उस कार्ड के अनुपात में बनेगा। मौजूदा आइटम का आकार बदलने के लिए नीचे मैनुअल साइज इस्तेमाल करें। ये सामान्य PVC कार्ड के आयाम हैं; मूल दस्तावेज के लिए आधिकारिक टेम्पलेट की पुष्टि करें।</p>
+  </section>
+
+  <section class="panel">
+    <h3>② चुनी हुई फोटो / फाइल</h3>
+    <div id="selectedInfo" class="hint">पहले किसी फोटो पर क्लिक करें।</div>
+    <div class="field">
+      <label>चौड़ाई (mm)</label>
+      <input type="number" id="itemW" min="1" max="210" step=".1" value="50">
+    </div>
+    <div class="field">
+      <label>ऊँचाई (mm)</label>
+      <input type="number" id="itemH" min="1" max="297" step=".1" value="30">
+    </div>
+    <div class="row">
+      <button id="applySize" class="secondary">साइज लागू करें</button>
+      <button id="deleteItem" class="danger">हटाएं</button>
+    </div>
+    <p class="hint">पेज पर फोटो को माउस/टच से खिसकाएं। नीले कोने को खींचकर साइज बदलें। A4 पेज की सीमा के अंदर रखें।</p>
+  </section>
+
+  <section class="panel">
+    <h3>③ क्वालिटी / इन्हैंसमेंट</h3>
+    <div class="field">
+      <label>ब्राइटनेस</label>
+      <input type="range" id="brightness" min="50" max="160" value="100">
+    </div>
+    <div class="field">
+      <label>कॉन्ट्रास्ट</label>
+      <input type="range" id="contrast" min="50" max="200" value="100">
+    </div>
+    <div class="field">
+      <label>ग्रे-स्केल</label>
+      <select id="gray">
+        <option value="0">बंद</option>
+        <option value="1">चालू</option>
+      </select>
+    </div>
+    <button class="secondary" id="applyEnhance">चुनी फोटो पर लागू करें</button>
+    <button class="secondary" id="resetEnhance">मूल लुक पर लौटें</button>
+    <p class="hint">यह ब्राइटनेस, कॉन्ट्रास्ट और ग्रे-स्केल समायोजित करता है। यह असली धुंधले टेक्स्ट का खोया विवरण वापस नहीं बना सकता।</p>
+  </section>
+
+  <section class="panel">
+    <h3>④ PDF कंप्रेशन</h3>
+    <div class="field">
+      <label>लक्ष्य फाइल साइज</label>
+      <div class="row">
+        <input type="number" id="targetSize" min="1" value="500">
+        <select id="targetUnit">
+          <option value="KB">KB</option>
+          <option value="MB">MB</option>
+          <option value="GB">GB</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>PDF इमेज क्वालिटी</label>
+      <select id="pdfQuality">
+        <option value=".95">बहुत उच्च — 95%</option>
+        <option value=".85" selected>उच्च — 85%</option>
+        <option value=".70">मध्यम — 70%</option>
+        <option value=".50">कम — 50%</option>
+      </select>
+    </div>
+    <button id="compressedPdfBtn">लक्ष्य साइज के करीब PDF</button>
+    <p class="hint">टारगेट साइज अनुमान है, गारंटी नहीं। PDF में टेक्स्ट/वेक्टर सामग्री, न्यूनतम क्वालिटी और पेजों की संख्या के कारण साइज बिल्कुल बराबर नहीं हो सकता। बहुत बड़ा GB लक्ष्य ब्राउज़र की मेमोरी सीमा में संभव न भी हो।</p>
+  </section>
+
+  <section class="panel">
+    <h3>⑤ पेज प्रबंधन</h3>
+    <div class="row">
+      <button id="clearPage" class="secondary">वर्तमान पेज खाली करें</button>
+      <button id="deletePage" class="danger">पेज हटाएं</button>
+    </div>
+    <p class="hint">एक से ज्यादा A4 पेज बना सकते हैं। PDF में सभी पेज क्रम से आएंगे।</p>
+  </section>
+
+  <section class="panel">
+    <h3>स्थिति</h3>
+    <div id="status">सिस्टम तैयार है। फोटो अपलोड करें या क्लिपबोर्ड से पेस्ट करें।</div>
+  </section>
+</aside>
+
+<main id="pages"></main>
+</div>
+
+<div id="cropModal">
+  <div class="modal">
+    <h3>फोटो क्रॉप करें</h3>
+    <div id="cropStage"><img id="cropImage" alt="Crop preview"></div>
+    <div class="row" style="margin-top:12px">
+      <button id="cropApply">क्रॉप लागू करें</button>
+      <button id="cropCancel" class="danger">रद्द करें</button>
+    </div>
+  </div>
+</div>
+
+<footer>HD Photo & Document Editor · फाइलें आपके ब्राउज़र में प्रोसेस होती हैं।</footer>
+
+<script>
+"use strict";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+const $ = id => document.getElementById(id);
+const pagesRoot = $("pages");
+const statusBox = $("status");
+
+let pages = [];
+let activePage = 0;
+let selectedId = null;
+let nextId = 1;
+let cropper = null;
+let cropTarget = null;
+
+const CARD_MM = { w: 85.60, h: 53.98 };
+const MAX_FILE_MB = 100;
+
+function status(message) {
+  statusBox.textContent = message;
+}
+function uid() { return nextId++; }
+function currentPage() { return pages[activePage]; }
+function selectedItem() {
+  for (const p of pages) {
+    const item = p.items.find(x => x.id === selectedId);
+    if (item) return item;
+  }
+  return null;
+}
+function makePage() {
+  pages.push({id: uid(), items: []});
+  activePage = pages.length - 1;
+  selectedId = null;
+  render();
+}
+function newItem(src, name, width, height) {
+  return {
+    id: uid(), src, name: name || "Image",
+    x: 5, y: 5, w: width || 50, h: height || 35,
+    brightness: 100, contrast: 100, gray: 0
+  };
+}
+function presetSize() {
+  const value = $("preset").value;
+  if (value === "aadhaar" || value === "pan" || value === "voter") {
+    return {w: CARD_MM.w, h: CARD_MM.h};
+  }
+  return {w: 50, h: 35};
+}
+function mmToPercentX(mm) { return mm / 210 * 100; }
+function mmToPercentY(mm) { return mm / 297 * 100; }
+function percentToMmX(p) { return p * 210 / 100; }
+function percentToMmY(p) { return p * 297 / 100; }
+
+function render() {
+  pagesRoot.innerHTML = "";
+  pages.forEach((page, pi) => {
+    const wrap = document.createElement("div");
+    wrap.className = "page-wrap";
+
+    const title = document.createElement("div");
+    title.className = "page-title";
+    const label = document.createElement("strong");
+    label.textContent = "A4 पेज " + (pi + 1);
+    const selectBtn = document.createElement("button");
+    selectBtn.className = "secondary";
+    selectBtn.textContent = pi === activePage ? "वर्तमान पेज" : "चुनें";
+    selectBtn.onclick = () => { activePage = pi; render(); };
+    title.append(label, selectBtn);
+
+    const canvas = document.createElement("div");
+    canvas.className = "a4-page" + (pi === activePage ? " active-page" : "");
+    canvas.dataset.page = String(pi);
+    canvas.addEventListener("click", e => {
+      if (e.target === canvas) {
+        activePage = pi;
+        selectedId = null;
+        render();
+      }
+    });
+
+    page.items.forEach(item => {
+      const img = document.createElement("img");
+      img.className = "photo-item" + (item.id === selectedId ? " selected" : "");
+      img.src = item.src;
+      img.alt = item.name;
+      img.draggable = false;
+      img.style.left = item.x + "%";
+      img.style.top = item.y + "%";
+      img.style.width = mmToPercentX(item.w) + "%";
+      img.style.height = mmToPercentY(item.h) + "%";
+      img.style.filter = `brightness(${item.brightness}%) contrast(${item.contrast}%) grayscale(${item.gray}%)`;
+      img.title = item.name;
+      img.addEventListener("pointerdown", e => {
+        if (e.target.classList.contains("resize-handle")) return;
+        e.preventDefault();
+        e.stopPropagation();
+        activePage = pi;
+        selectedId = item.id;
+        const rect = canvas.getBoundingClientRect();
+        const startX = e.clientX, startY = e.clientY;
+        const origX = item.x, origY = item.y;
+        const move = ev => {
+          item.x = Math.max(0, Math.min(100 - mmToPercentX(item.w),
+            origX + (ev.clientX - startX) / rect.width * 100));
+          item.y = Math.max(0, Math.min(100 - mmToPercentY(item.h),
+            origY + (ev.clientY - startY) / rect.height * 100));
+          img.style.left = item.x + "%";
+          img.style.top = item.y + "%";
+        };
+        const up = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          updateSelectedInfo();
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+        renderSelectionOnly();
+      });
+      const handle = document.createElement("span");
+      handle.className = "resize-handle";
+      handle.addEventListener("pointerdown", e => {
+        e.preventDefault(); e.stopPropagation();
+        activePage = pi;
+        selectedId = item.id;
+        const rect = canvas.getBoundingClientRect();
+        const startX = e.clientX, startY = e.clientY;
+        const ow = item.w, oh = item.h;
+        const move = ev => {
+          item.w = Math.max(3, Math.min(210 - item.x,
+            ow + (ev.clientX - startX) / rect.width * 210));
+          item.h = Math.max(3, Math.min(297 - item.y,
+            oh + (ev.clientY - startY) / rect.height * 297));
+          img.style.width = mmToPercentX(item.w) + "%";
+          img.style.height = mmToPercentY(item.h) + "%";
+        };
+        const up = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+          updateSelectedInfo();
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+        renderSelectionOnly();
+      });
+      img.appendChild(handle);
+      canvas.appendChild(img);
+    });
+
+    wrap.append(title, canvas);
+    pagesRoot.appendChild(wrap);
+  });
+  updateSelectedInfo();
+}
+function renderSelectionOnly() {
+  document.querySelectorAll(".photo-item").forEach(el => {
+    const parentPage = Number(el.closest(".a4-page").dataset.page);
+    const item = pages[parentPage].items.find(x => x.src === el.src);
+    el.classList.toggle("selected", !!item && item.id === selectedId);
+  });
+  updateSelectedInfo();
+}
+function updateSelectedInfo() {
+  const item = selectedItem();
+  $("selectedInfo").textContent = item
+    ? item.name + " · " + item.w.toFixed(1) + " × " + item.h.toFixed(1) + " mm"
+    : "पहले किसी फोटो पर क्लिक करें।";
+  if (item) {
+    $("itemW").value = item.w.toFixed(1);
+    $("itemH").value = item.h.toFixed(1);
+    $("brightness").value = item.brightness;
+    $("contrast").value = item.contrast;
+    $("gray").value = String(item.gray);
+  }
+}
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("इमेज पढ़ी नहीं जा सकी।"));
+    img.src = src;
+  });
+}
+function fileAsDataURL(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("फाइल पढ़ने में समस्या।"));
+    reader.readAsDataURL(file);
+  });
+}
+function validateFile(file) {
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    throw new Error("फाइल 100 MB से बड़ी है। कृपया छोटी फाइल चुनें।");
+  }
+}
+async function addImageData(src, name) {
+  const img = await loadImage(src);
+  const preset = presetSize();
+  let w = preset.w, h = preset.h;
+  if ($("preset").value === "other") {
+    const ratio = img.naturalWidth / img.naturalHeight;
+    w = Math.min(100, Math.max(20, ratio * 35));
+    h = w / ratio;
+  }
+  const item = newItem(src, name, w, h);
+  currentPage().items.push(item);
+  selectedId = item.id;
+  render();
+  status("फोटो जोड़ी गई: " + name);
+}
+async function importPdf(file) {
+  status("PDF पढ़ी जा रही है…");
+  const buffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buffer}).promise;
+  if (pdf.numPages > 50) throw new Error("एक बार में अधिकतम 50 PDF पेज इम्पोर्ट करें।");
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const pdfPage = await pdf.getPage(i);
+    const viewport = pdfPage.getViewport({scale: 2});
+    const c = document.createElement("canvas");
+    c.width = Math.ceil(viewport.width);
+    c.height = Math.ceil(viewport.height);
+    const ctx = c.getContext("2d", {alpha:false});
+    await pdfPage.render({canvasContext:ctx, viewport}).promise;
+    const src = c.toDataURL("image/jpeg", .94);
+    if (i > 1) makePage();
+    await addImageData(src, file.name + " — पेज " + i);
+    const item = selectedItem();
+    if (item) {
+      item.x = 0; item.y = 0; item.w = 210; item.h = 297;
+    }
+  }
+  render();
+  status("PDF इम्पोर्ट पूरा हुआ। ध्यान दें: PDF पेज इमेज में बदल गए हैं, मूल टेक्स्ट संपादन योग्य नहीं है।");
+}
+$("upload").addEventListener("change", async e => {
+  const files = Array.from(e.target.files || []);
+  if (!files.length) return;
+  try {
+    for (const file of files) {
+      validateFile(file);
+      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
+        await importPdf(file);
+      } else if (file.type.startsWith("image/")) {
+        await addImageData(await fileAsDataURL(file), file.name);
+      } else {
+        status("यह फाइल फॉर्मेट समर्थित नहीं है: " + file.name);
+      }
+    }
+  } catch (err) {
+    status("त्रुटि: " + err.message);
+  }
+  e.target.value = "";
+});
+document.addEventListener("paste", async e => {
+  const items = Array.from((e.clipboardData || {}).items || []);
+  const imageItem = items.find(x => x.type.startsWith("image/"));
+  if (!imageItem) return;
+  const file = imageItem.getAsFile();
+  if (!file) return;
+  try { await addImageData(await fileAsDataURL(file), "Clipboard image"); }
+  catch (err) { status("पेस्ट त्रुटि: " + err.message); }
+});
+$("pasteBtn").onclick = () => status("Ctrl+V दबाकर कॉपी की हुई फोटो पेस्ट करें।");
+
+$("addPageBtn").onclick = () => { makePage(); status("नया A4 पेज जोड़ा गया।"); };
+$("duplicateBtn").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले कोई फोटो चुनें।");
+  const copy = {...item, id:uid(), x:Math.min(100 - mmToPercentX(item.w), item.x + 3),
+    y:Math.min(100 - mmToPercentY(item.h), item.y + 3)};
+  currentPage().items.push(copy);
+  selectedId = copy.id;
+  render();
+};
+$("applySize").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले कोई फोटो चुनें।");
+  const w = Number($("itemW").value), h = Number($("itemH").value);
+  if (!(w > 0 && h > 0 && w <= 210 && h <= 297)) {
+    return status("साइज 0 से अधिक तथा A4 की सीमा के अंदर रखें।");
+  }
+  item.w = w; item.h = h;
+  item.x = Math.min(item.x, 100 - mmToPercentX(w));
+  item.y = Math.min(item.y, 100 - mmToPercentY(h));
+  render();
+  status("नया साइज लागू हुआ।");
+};
+$("deleteItem").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले कोई फोटो चुनें।");
+  pages.forEach(p => p.items = p.items.filter(x => x.id !== selectedId));
+  selectedId = null;
+  render();
+  status("चुनी हुई फोटो हटा दी गई।");
+};
+$("preset").onchange = () => {
+  status("साइज प्रीसेट बदला गया। अगली अपलोड की गई फोटो पर लागू होगा।");
+};
+
+$("cropBtn").onclick = async () => {
+  const item = selectedItem();
+  if (!item) return status("क्रॉप करने के लिए फोटो चुनें।");
+  try {
+    cropTarget = item.id;
+    $("cropImage").src = item.src;
+    $("cropModal").style.display = "flex";
+    if (cropper) cropper.destroy();
+    cropper = new Cropper($("cropImage"), {
+      viewMode:1, autoCropArea:.9, responsive:true, background:false
+    });
+  } catch (err) {
+    status("क्रॉप विंडो नहीं खुली: " + err.message);
+  }
+};
+$("cropCancel").onclick = () => {
+  $("cropModal").style.display = "none";
+  if (cropper) cropper.destroy();
+  cropper = null;
+};
+$("cropApply").onclick = () => {
+  if (!cropper || !cropTarget) return;
+  try {
+    const canvas = cropper.getCroppedCanvas({
+      maxWidth:5000, maxHeight:5000, imageSmoothingEnabled:true,
+      imageSmoothingQuality:"high"
+    });
+    if (!canvas) throw new Error("क्रॉप कैनवास नहीं बना।");
+    const item = pages.flatMap(p => p.items).find(x => x.id === cropTarget);
+    if (item) item.src = canvas.toDataURL("image/png");
+    $("cropModal").style.display = "none";
+    cropper.destroy(); cropper = null; cropTarget = null;
+    render();
+    status("क्रॉप लागू हुआ।");
+  } catch (err) { status("क्रॉप त्रुटि: " + err.message); }
+};
+
+$("applyEnhance").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले फोटो चुनें।");
+  item.brightness = Number($("brightness").value);
+  item.contrast = Number($("contrast").value);
+  item.gray = Number($("gray").value);
+  render();
+  status("इन्हैंसमेंट लागू हुआ।");
+};
+$("enhanceBtn").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले फोटो चुनें।");
+  item.brightness = Number($("brightness").value);
+  item.contrast = Number($("contrast").value);
+  item.gray = Number($("gray").value);
+  render();
+  status("फोटो इन्हैंसमेंट लागू हुआ।");
+};
+$("resetEnhance").onclick = () => {
+  const item = selectedItem();
+  if (!item) return status("पहले फोटो चुनें।");
+  item.brightness = 100; item.contrast = 100; item.gray = 0;
+  render();
+  status("मूल लुक की सेटिंग लागू हुई।");
+};
+
+function drawItem(ctx, item, pageWidth, pageHeight) {
+  return loadImage(item.src).then(img => {
+    const x = item.x / 100 * pageWidth;
+    const y = item.y / 100 * pageHeight;
+    const w = item.w / 210 * pageWidth;
+    const h = item.h / 297 * pageHeight;
+    ctx.save();
+    ctx.filter = `brightness(${item.brightness}%) contrast(${item.contrast}%) grayscale(${item.gray}%)`;
+    ctx.drawImage(img, x, y, w, h);
+    ctx.restore();
+  });
+}
+async function pageCanvas(page, scale=2) {
+  const c = document.createElement("canvas");
+  c.width = Math.round(210 * 3.779527559 * scale);
+  c.height = Math.round(297 * 3.779527559 * scale);
+  const ctx = c.getContext("2d", {alpha:false});
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0,0,c.width,c.height);
+  for (const item of page.items) await drawItem(ctx,item,c.width,c.height);
+  return c;
+}
+async function buildPdf(quality=.85, scale=2) {
+  const {jsPDF} = window.jspdf;
+  const pdf = new jsPDF({orientation:"portrait",unit:"mm",format:"a4",compress:true});
+  for (let i=0; i<pages.length; i++) {
+    if (i > 0) pdf.addPage("a4","portrait");
+    const c = await pageCanvas(pages[i],scale);
+    const data = c.toDataURL("image/jpeg",quality);
+    pdf.addImage(data,"JPEG",0,0,210,297,undefined,"FAST");
+    c.width=1; c.height=1;
+  }
+  return pdf;
+}
+function downloadBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+$("pdfBtn").onclick = async () => {
+  if (!pages.length) return status("पहले A4 पेज बनाएं।");
+  try {
+    status("PDF बनाई जा रही है… कृपया प्रतीक्षा करें।");
+    const pdf = await buildPdf(Number($("pdfQuality").value),2);
+    pdf.save("HD-Photo-Document.pdf");
+    status("PDF डाउनलोड शुरू हुआ।");
+  } catch (err) {
+    status("PDF त्रुटि: " + err.message);
+  }
+};
+$("compressedPdfBtn").onclick = async () => {
+  if (!pages.length) return status("पहले A4 पेज बनाएं।");
+  const amount = Number($("targetSize").value);
+  if (!(amount > 0)) return status("लक्ष्य साइज 0 से अधिक लिखें।");
+  const multiplier = $("targetUnit").value === "KB" ? 1024 :
+    $("targetUnit").value === "MB" ? 1024*1024 : 1024*1024*1024;
+  const target = amount * multiplier;
+  try {
+    let quality = Number($("pdfQuality").value);
+    let scale = 2;
+    let best = null;
+    status("लक्ष्य साइज के करीब PDF बनाई जा रही है…");
+    for (let i=0; i<5; i++) {
+      const pdf = await buildPdf(quality,scale);
+      const blob = pdf.output("blob");
+      best = blob;
+      if (blob.size <= target) break;
+      if (quality > .35) quality = Math.max(.25,quality-.15);
+      else scale = Math.max(.7,scale*.75);
+    }
+    downloadBlob(best,"Compressed-Document.pdf");
+    status("PDF डाउनलोड शुरू हुआ। वास्तविक साइज: " +
+      (best.size/1024).toFixed(1) + " KB। लक्ष्य: " + amount + " " +
+      $("targetUnit").value + "। साइज लक्ष्य से अलग हो सकता है।");
+  } catch (err) {
+    status("कंप्रेशन त्रुटि: " + err.message);
+  }
+};
+$("saveImageBtn").onclick = async () => {
+  const item = selectedItem();
+  if (!item) return status("इमेज सेव करने के लिए फोटो चुनें।");
+  try {
+    const img = await loadImage(item.src);
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth; c.height = img.naturalHeight;
+    const ctx = c.getContext("2d");
+    ctx.filter = `brightness(${item.brightness}%) contrast(${item.contrast}%) grayscale(${item.gray}%)`;
+    ctx.drawImage(img,0,0);
+    c.toBlob(blob => {
+      if (!blob) return status("इमेज सेव नहीं हो सकी।");
+      downloadBlob(blob,"Edited-Image.png");
+      status("इमेज डाउनलोड शुरू हुआ।");
+    },"image/png");
+  } catch (err) { status("इमेज त्रुटि: " + err.message); }
+};
+$("printBtn").onclick = async () => {
+  if (!pages.length) return status("पहले A4 पेज बनाएं।");
+  try {
+    status("प्रिंट के लिए PDF बनाई जा रही है…");
+    const pdf = await buildPdf(.95,2);
+    const blob = pdf.output("blob");
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url,"_blank");
+    if (!win) {
+      downloadBlob(blob,"Print-Document.pdf");
+      status("ब्राउज़र ने नया टैब रोका। PDF डाउनलोड की गई; उसे खोलकर प्रिंट करें।");
+    } else {
+      status("PDF खुल रही है। नए टैब में प्रिंट बटन दबाएं।");
+      setTimeout(() => URL.revokeObjectURL(url),60000);
+    }
+  } catch (err) { status("प्रिंट त्रुटि: " + err.message); }
+};
+$("clearPage").onclick = () => {
+  if (!currentPage()) return;
+  currentPage().items = [];
+  selectedId = null; render();
+  status("वर्तमान पेज खाली किया गया।");
+};
+$("deletePage").onclick = () => {
+  if (pages.length <= 1) return status("कम-से-कम एक A4 पेज रखना होगा।");
+  const removed = currentPage();
+  pages = pages.filter(p => p.id !== removed.id);
+  activePage = Math.min(activePage,pages.length-1);
+  selectedId = null; render();
+  status("पेज हटाया गया।");
+};
+
+makePage();
+</script>
+</body>
+</html>
