@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fino Customer Record Maker</title>
+<title>Fino FINO PASSBOOK Maker</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
@@ -171,7 +171,7 @@ button.red{background:#b52b2b}
 }
 
 .photo-row{
-  height:18mm;
+  height:22mm;
   display:flex;
   justify-content:flex-end;
   align-items:flex-start;
@@ -181,7 +181,7 @@ button.red{background:#b52b2b}
 
 .photo-box{
   width:19mm;
-  height:18mm;
+  height:22mm;
   border:.4mm solid #555;
   display:flex;
   align-items:center;
@@ -332,7 +332,7 @@ button.red{background:#b52b2b}
 
 <body>
 
-<h1 class="app-title">Customer Record Maker</h1>
+<h1 class="app-title">FINO PASSBOOK Maker</h1>
 
 <section class="editor">
   <h2>Enter Customer Information</h2>
@@ -398,7 +398,7 @@ button.red{background:#b52b2b}
 </section>
 
 <h2 class="preview-title" style="text-align:center;font-size:18px">
-  Customer Record Preview
+  FINO PASSBOOK Preview
 </h2>
 
 <article id="record">
@@ -502,7 +502,7 @@ button.red{background:#b52b2b}
   </footer>
 
   <div class="record-disclaimer">
-    CUSTOMER RECORD • NOT AN OFFICIAL BANK DOCUMENT
+    --
   </div>
 </article>
 
@@ -632,7 +632,7 @@ button.red{background:#b52b2b}
   });
 
   $("resetBtn").addEventListener("click",()=>{
-    if(!confirm("Clear all information and start a new customer record?")) return;
+    if(!confirm("Clear all information and start a new FINO PASSBOOK?")) return;
 
     fields.forEach(([inputId,outputId])=>{
       $(inputId).value = "";
