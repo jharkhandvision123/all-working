@@ -1,330 +1,368 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fino Customer Record Maker</title>
+<title>Customer Record Maker</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  padding:16px;
-  background:#eef1f5;
-  color:#222;
-  font-family:Arial,Helvetica,sans-serif;
+* {
+  box-sizing: border-box;
 }
 
-h1.app-title{
-  text-align:center;
-  font-size:23px;
-  margin:8px 0 18px;
+body {
+  margin: 0;
+  padding: 16px;
+  background: #eef1f5;
+  color: #222;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-.editor{
-  max-width:650px;
-  margin:0 auto 22px;
-  padding:18px;
-  background:white;
-  border-radius:9px;
-  box-shadow:0 2px 12px #0001;
+.app-title {
+  text-align: center;
+  font-size: 23px;
+  margin: 8px 0 18px;
 }
 
-.editor h2{font-size:18px;margin-top:0}
-.field{margin-bottom:12px}
-
-.field label{
-  display:block;
-  font-size:13px;
-  font-weight:bold;
-  margin-bottom:5px;
+.editor {
+  max-width: 650px;
+  margin: 0 auto 22px;
+  padding: 18px;
+  background: #fff;
+  border-radius: 9px;
+  box-shadow: 0 2px 12px #0001;
 }
 
-.field input,.field textarea{
-  width:100%;
-  padding:10px;
-  border:1px solid #bbb;
-  border-radius:5px;
-  font:inherit;
+.editor h2 {
+  font-size: 18px;
+  margin-top: 0;
 }
 
-.field textarea{min-height:65px;resize:vertical}
-
-.buttons{
-  display:flex;
-  gap:9px;
-  flex-wrap:wrap;
-  margin-top:14px;
+.field {
+  margin-bottom: 12px;
 }
 
-button{
-  border:0;
-  padding:11px 14px;
-  border-radius:5px;
-  background:#174b88;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
+.field label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin-bottom: 5px;
 }
 
-button:disabled{opacity:.6}
-button.green{background:#19834a}
-button.gray{background:#555}
-button.red{background:#b52b2b}
-
-.note{
-  font-size:12px;
-  color:#555;
-  line-height:1.5;
+.field input,
+.field textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #bbb;
+  border-radius: 5px;
+  font: inherit;
 }
 
-/* Fixed record size: 110mm x 100mm */
-#record{
-  position:relative;
-  isolation:isolate;
-  width:110mm;
-  height:100mm;
-  margin:0 auto;
-  padding:4mm;
-  background:#fff;
-  border:.5mm solid #555;
-  overflow:hidden;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#202020;
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
+.field textarea {
+  min-height: 65px;
+  resize: vertical;
 }
 
-/* Watermark: visible background layer */
-.watermark{
-  position:absolute;
-  z-index:0;
-  left:50%;
-  top:55%;
-  width:72mm;
-  height:72mm;
-  transform:translate(-50%,-50%);
-  opacity:.12;
-  pointer-events:none;
-  display:block;
+.buttons {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
-/* All record content stays above watermark */
+button {
+  border: 0;
+  padding: 11px 14px;
+  border-radius: 5px;
+  background: #174b88;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+button.green {
+  background: #19834a;
+}
+
+button.gray {
+  background: #555;
+}
+
+button.red {
+  background: #b52b2b;
+}
+
+.note {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Customer record: fixed 110mm x 100mm */
+#record {
+  position: relative;
+  isolation: isolate;
+  width: 110mm;
+  height: 100mm;
+  margin: 0 auto;
+  padding: 4mm;
+  background: #fff;
+  border: .5mm solid #555;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #202020;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Decorative watermark */
+.watermark {
+  position: absolute;
+  z-index: 0;
+  left: 50%;
+  top: 52%;
+  width: 62mm;
+  height: 62mm;
+  transform: translate(-50%, -50%);
+  opacity: .10;
+  pointer-events: none;
+}
+
+/* Keep content above watermark */
 .header,
 .photo-row,
 .records,
 .footer,
-.record-disclaimer{
-  position:relative;
-  z-index:1;
+.record-disclaimer {
+  position: relative;
+  z-index: 1;
 }
 
-.header{
-  height:23mm;
-  display:grid;
-  grid-template-columns:1fr 1.25fr 1fr;
-  gap:1mm;
-  align-items:start;
+.header {
+  height: 22mm;
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 1mm;
+  align-items: start;
 }
 
-.brand{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:1mm;
-  min-width:0;
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1mm;
+  min-width: 0;
 }
 
-.brand svg{
-  width:10mm;
-  height:12mm;
-  flex-shrink:0;
-  display:block;
+.brand svg {
+  width: 10mm;
+  height: 12mm;
+  flex-shrink: 0;
+  display: block;
 }
 
-.brand-name{
-  font-size:5.4pt;
-  line-height:1.1;
-  font-weight:bold;
-  color:#234b88;
+.brand-name {
+  font-size: 5.2pt;
+  line-height: 1.15;
+  font-weight: bold;
+  color: #234b88;
 }
 
-.heading{
-  text-align:center;
-  padding-top:3mm;
+.heading {
+  text-align: center;
+  padding-top: 3mm;
 }
 
-.heading .kiosk{
-  font-size:10pt;
-  font-weight:normal;
-  margin-bottom:1mm;
+.heading .kiosk {
+  font-size: 10pt;
+  margin-bottom: 1mm;
 }
 
-.heading .bank{
-  font-size:8pt;
-  font-weight:bold;
-  line-height:1.15;
+.heading .bank {
+  font-size: 7.5pt;
+  font-weight: bold;
+  line-height: 1.2;
 }
 
-.photo-row{
-  height:24mm;
-  display:flex;
-  justify-content:flex-end;
-  align-items:flex-start;
-  margin-top:-1mm;
-  margin-bottom:1mm;
+.photo-row {
+  height: 24mm;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  margin-top: -1mm;
+  margin-bottom: 1mm;
 }
 
-.photo-box{
-  width:19mm;
-  height:24mm;
-  border:.4mm solid #555;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  background:transparent;
+.photo-box {
+  width: 19mm;
+  height: 24mm;
+  border: .4mm solid #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: transparent;
 }
 
-.photo-box img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
+.photo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.photo-placeholder{
-  text-align:center;
-  font-size:8pt;
-  font-weight:bold;
+.photo-placeholder {
+  text-align: center;
+  font-size: 8pt;
+  font-weight: bold;
 }
 
-.records{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  font-size:7.1pt;
-  line-height:1.15;
-  background:transparent;
+.records {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 7.1pt;
+  line-height: 1.15;
+  background: transparent;
 }
 
-.records td{
-  border:.3mm solid #555;
-  padding:1.15mm 1mm;
-  vertical-align:middle;
-  overflow-wrap:anywhere;
-  background:transparent;
+.records td {
+  border: .3mm solid #555;
+  padding: 1mm;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+  background: transparent;
 }
 
-.records td.label{
-  width:46%;
-  font-weight:bold;
+.records td.label {
+  width: 46%;
+  font-weight: bold;
 }
 
-.records td.separator{
-  width:4%;
-  text-align:center;
-  font-weight:bold;
+.records td.separator {
+  width: 4%;
+  text-align: center;
+  font-weight: bold;
 }
 
-.records td.value{
-  width:50%;
-  font-weight:800;
-  font-size:7.3pt;
+.records td.value {
+  width: 50%;
+  font-weight: 800;
+  font-size: 7.3pt;
 }
 
-.records tr.address-row td{
-  height:12mm;
-  vertical-align:top;
+.records tr.address-row td {
+  height: 11mm;
+  vertical-align: top;
 }
 
-.footer{
-  margin-top:2mm;
-  font-size:7pt;
-  line-height:1.35;
-  font-weight:bold;
+.footer {
+  margin-top: 1.5mm;
+  font-size: 6.5pt;
+  line-height: 1.3;
+  font-weight: bold;
+  overflow-wrap: anywhere;
 }
 
-.footer .service{color:#234b88}
-
-.record-disclaimer{
-  position:absolute;
-  bottom:1mm;
-  left:0;
-  width:100%;
-  text-align:center;
-  font-size:4.5pt;
-  color:#555;
-  background:#ffffffc9;
+.footer .service {
+  color: #234b88;
 }
 
-@media(max-width:500px){
-  body{padding:8px}
-  .editor{padding:12px}
+.record-disclaimer {
+  position: absolute;
+  bottom: 1mm;
+  left: 0;
+  width: 100%;
+  padding: 0 .5mm;
+  text-align: center;
+  font-size: 4.5pt;
+  line-height: 1.2;
+  color: #555;
+  background: #ffffff;
 }
 
-/* A4 printing with safe top cutting margin */
-@page{
-  size:A4 portrait;
-  margin:5mm;
+.preview-title {
+  text-align: center;
+  font-size: 18px;
 }
 
-@media print{
-  html,body{
-    margin:0!important;
-    padding:0!important;
-    width:auto;
-    height:auto;
-    background:#fff!important;
+@media (max-width: 500px) {
+  body {
+    padding: 8px;
   }
 
-  .app-title,
-  .editor,
-  .preview-title,
-  .screen-note{
-    display:none!important;
+  .editor {
+    padding: 12px;
   }
 
-  #record{
-    position:relative;
-    left:auto;
-    top:auto;
-    transform:none;
-    margin:2mm auto 0!important;
-    width:110mm!important;
-    height:100mm!important;
-    padding:4mm!important;
-    overflow:hidden;
-    box-shadow:none!important;
-    background:#fff!important;
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
+  #record {
+    transform-origin: top left;
+  }
+}
+
+/* A4 printing */
+@page {
+  size: A4 portrait;
+  margin: 5mm;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: auto !important;
+    min-height: 0 !important;
+    background: #fff !important;
   }
 
-  .watermark{
-    display:block!important;
-    visibility:visible!important;
-    opacity:.12!important;
-    z-index:0!important;
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
+  body > * {
+    display: none !important;
   }
 
-  .header,.photo-row,.records,.footer{
-    visibility:visible!important;
+  body > #record {
+    display: block !important;
   }
 
-  .brand svg,.watermark{
-    print-color-adjust:exact!important;
-    -webkit-print-color-adjust:exact!important;
+  #record {
+    position: relative !important;
+    width: 110mm !important;
+    height: 100mm !important;
+    margin: 2mm auto 0 !important;
+    padding: 4mm !important;
+    transform: none !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+    background: #fff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
-  .records td{
-    background:transparent!important;
+  .watermark {
+    display: block !important;
+    visibility: visible !important;
+    opacity: .10 !important;
+  }
+
+  .header,
+  .photo-row,
+  .records,
+  .footer,
+  .record-disclaimer {
+    visibility: visible !important;
+  }
+
+  .records td {
+    background: transparent !important;
   }
 }
 </style>
@@ -369,7 +407,8 @@ button.red{background:#b52b2b}
 
   <div class="field">
     <label for="mobile">Mobile Number</label>
-    <input id="mobile" inputmode="numeric" maxlength="10" placeholder="Enter mobile number">
+    <input id="mobile" inputmode="numeric" maxlength="10"
+           placeholder="Enter mobile number">
   </div>
 
   <div class="field">
@@ -379,7 +418,9 @@ button.red{background:#b52b2b}
 
   <div class="buttons">
     <button type="button" id="pasteBtn">Paste Photo</button>
-    <button type="button" class="gray" id="removePhotoBtn">Remove Photo</button>
+    <button type="button" class="gray" id="removePhotoBtn">
+      Remove Photo
+    </button>
   </div>
 
   <div class="buttons">
@@ -389,64 +430,62 @@ button.red{background:#b52b2b}
   </div>
 
   <p class="note">
-    A4 पेपर पर ऊपर कटिंग के लिए जगह रखी गई है।
-    प्रिंट करते समय Scale 100% और Headers/Footers बंद रखें।
-    यदि लोगो या वॉटरमार्क हल्का दिखे, तो Printer Properties में
-    Color तथा Background Graphics विकल्प जाँचें।
-    यह ग्राहक रिकॉर्ड शीट है, आधिकारिक बैंक पासबुक नहीं।
+    प्रिंट करते समय A4 Paper, Scale 100% और Headers/Footers बंद रखें।
+    PDF डाउनलोड करने के लिए इंटरनेट कनेक्शन आवश्यक हो सकता है।
+    यह सामान्य ग्राहक रिकॉर्ड शीट है, आधिकारिक बैंक पासबुक नहीं।
   </p>
 </section>
 
-<h2 class="preview-title" style="text-align:center;font-size:18px">
-  Customer Record Preview
-</h2>
+<h2 class="preview-title">Customer Record Preview</h2>
 
 <article id="record">
 
-  <!-- Decorative watermark, not an official bank seal -->
-  <svg class="watermark" viewBox="0 0 100 100" aria-hidden="true">
-    <path d="M50 5
-      C43 5 41 17 35 25
-      L17 29 C5 32 9 45 17 51
-      L28 61 L25 78
-      C23 91 35 96 45 88
-      L50 83 L55 88
-      C65 96 77 91 75 78
-      L72 61 L83 51
-      C91 45 95 32 83 29
-      L65 25 C59 17 57 5 50 5Z"
+  <svg class="watermark" viewBox="0 0 100 100"
+       aria-hidden="true">
+    <path d="M50 5 C43 5 41 17 35 25 L17 29
+      C5 32 9 45 17 51 L28 61 L25 78
+      C23 91 35 96 45 88 L50 83 L55 88
+      C65 96 77 91 75 78 L72 61 L83 51
+      C91 45 95 32 83 29 L65 25
+      C59 17 57 5 50 5Z"
       fill="#b94a42"/>
-    <path d="M50 51
-      C39 51 35 62 42 73
-      L50 87 L58 73
-      C65 62 61 51 50 51Z"
+    <path d="M50 51 C39 51 35 62 42 73
+      L50 87 L58 73 C65 62 61 51 50 51Z"
       fill="#245aa8"/>
   </svg>
 
   <header class="header">
     <div class="brand">
       <svg viewBox="0 0 100 120" aria-hidden="true">
-        <path d="M50 5 L62 35 L92 36 L69 56 L78 86 L50 69 L22 86 L31 56 L8 36 L38 35Z"
-          fill="none" stroke="#b94a42" stroke-width="12" stroke-linejoin="round"/>
-        <path d="M50 62 C37 62 34 77 43 89 L50 103 L57 89 C66 77 63 62 50 62Z"
+        <path d="M50 5 L62 35 L92 36 L69 56
+          L78 86 L50 69 L22 86 L31 56
+          L8 36 L38 35Z"
+          fill="none" stroke="#b94a42"
+          stroke-width="12" stroke-linejoin="round"/>
+        <path d="M50 62 C37 62 34 77 43 89
+          L50 103 L57 89 C66 77 63 62 50 62Z"
           fill="#245aa8"/>
       </svg>
-      <div class="brand-name">FINO<br>PAYMENTS BANK</div>
+      <div class="brand-name">CUSTOMER<br>RECORD</div>
     </div>
 
     <div class="heading">
-      <div class="kiosk">KIOSK</div>
-      <div class="bank">FINO PAYMENTS BANK</div>
+      <div class="kiosk">CUSTOMER</div>
+      <div class="bank">RECORD SHEET</div>
     </div>
 
     <div class="brand">
       <svg viewBox="0 0 100 120" aria-hidden="true">
-        <path d="M50 5 L62 35 L92 36 L69 56 L78 86 L50 69 L22 86 L31 56 L8 36 L38 35Z"
-          fill="none" stroke="#b94a42" stroke-width="12" stroke-linejoin="round"/>
-        <path d="M50 62 C37 62 34 77 43 89 L50 103 L57 89 C66 77 63 62 50 62Z"
+        <path d="M50 5 L62 35 L92 36 L69 56
+          L78 86 L50 69 L22 86 L31 56
+          L8 36 L38 35Z"
+          fill="none" stroke="#b94a42"
+          stroke-width="12" stroke-linejoin="round"/>
+        <path d="M50 62 C37 62 34 77 43 89
+          L50 103 L57 89 C66 77 63 62 50 62Z"
           fill="#245aa8"/>
       </svg>
-      <div class="brand-name">FINO<br>PAYMENTS BANK</div>
+      <div class="brand-name">CUSTOMER<br>DETAILS</div>
     </div>
   </header>
 
@@ -497,39 +536,50 @@ button.red{background:#b52b2b}
   </table>
 
   <footer class="footer">
-    <div class="service">Customer service: 022 6868 1414</div>
-    <div>www.finobank.com</div>
+    <div class="service">Customer Service: __________________</div>
+    <div>Website: __________________</div>
   </footer>
 
   <div class="record-disclaimer">
-    CUSTOMER RECORD •
+    CUSTOMER RECORD • NOT AN OFFICIAL BANK DOCUMENT
   </div>
 </article>
 
 <script>
-(function(){
+(function () {
   "use strict";
 
   const $ = id => document.getElementById(id);
 
   const fields = [
-    ["customerName","outName"],
-    ["accountNo","outAccount"],
-    ["ifsc","outIfsc"],
-    ["customerId","outCustomerId"],
-    ["relativeName","outRelative"],
-    ["address","outAddress"],
-    ["mobile","outMobile"]
+    ["customerName", "outName"],
+    ["accountNo", "outAccount"],
+    ["ifsc", "outIfsc"],
+    ["customerId", "outCustomerId"],
+    ["relativeName", "outRelative"],
+    ["address", "outAddress"],
+    ["mobile", "outMobile"]
   ];
 
-  fields.forEach(([inputId,outputId])=>{
-    $(inputId).addEventListener("input",()=>{
+  fields.forEach(([inputId, outputId]) => {
+    $(inputId).addEventListener("input", () => {
       $(outputId).textContent = $(inputId).value.trim();
     });
   });
 
-  function displayPhoto(dataUrl){
-    if(!dataUrl || !dataUrl.startsWith("data:image/")){
+  function resetPhoto() {
+    $("photoInput").value = "";
+
+    const placeholder = document.createElement("span");
+    placeholder.className = "photo-placeholder";
+    placeholder.textContent = "PHOTO";
+
+    $("photoBox").replaceChildren(placeholder);
+  }
+
+  function displayPhoto(dataUrl) {
+    if (typeof dataUrl !== "string" ||
+        !dataUrl.startsWith("data:image/")) {
       alert("Please select a valid image.");
       return;
     }
@@ -537,40 +587,54 @@ button.red{background:#b52b2b}
     const img = document.createElement("img");
     img.src = dataUrl;
     img.alt = "Customer photo";
+
     $("photoBox").replaceChildren(img);
   }
 
-  $("photoInput").addEventListener("change",function(){
+  $("photoInput").addEventListener("change", function () {
     const file = this.files && this.files[0];
-    if(!file) return;
 
-    if(!file.type.startsWith("image/")){
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
       alert("Please select an image file.");
       this.value = "";
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = ()=>displayPhoto(reader.result);
-    reader.onerror = ()=>alert("Could not read the photo. Please try again.");
+
+    reader.onload = () => displayPhoto(reader.result);
+    reader.onerror = () => {
+      alert("Could not read the photo. Please try again.");
+    };
+
     reader.readAsDataURL(file);
   });
 
-  $("pasteBtn").addEventListener("click",()=>{
-    alert("Copy a photo, then press Ctrl + V on this page.");
+  $("pasteBtn").addEventListener("click", () => {
+    alert("किसी फोटो को Copy करें, फिर इस पेज पर Ctrl + V दबाएँ।");
   });
 
-  document.addEventListener("paste",event=>{
-    const items = event.clipboardData && event.clipboardData.items;
-    if(!items) return;
+  document.addEventListener("paste", event => {
+    const items = event.clipboardData &&
+                  event.clipboardData.items;
 
-    for(const item of items){
-      if(item.type && item.type.startsWith("image/")){
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type && item.type.startsWith("image/")) {
         const file = item.getAsFile();
-        if(!file) continue;
+
+        if (!file) continue;
 
         const reader = new FileReader();
-        reader.onload = ()=>displayPhoto(reader.result);
+
+        reader.onload = () => displayPhoto(reader.result);
+        reader.onerror = () => {
+          alert("Photo paste नहीं हो सकी। दोबारा कोशिश करें।");
+        };
+
         reader.readAsDataURL(file);
         event.preventDefault();
         return;
@@ -578,21 +642,17 @@ button.red{background:#b52b2b}
     }
   });
 
-  $("removePhotoBtn").addEventListener("click",()=>{
-    $("photoInput").value = "";
-    const placeholder = document.createElement("span");
-    placeholder.className = "photo-placeholder";
-    placeholder.textContent = "PHOTO";
-    $("photoBox").replaceChildren(placeholder);
-  });
+  $("removePhotoBtn").addEventListener("click", resetPhoto);
 
-  $("printBtn").addEventListener("click",()=>{
+  $("printBtn").addEventListener("click", () => {
     window.print();
   });
 
-  $("pdfBtn").addEventListener("click",async function(){
-    if(typeof window.html2pdf !== "function"){
-      alert("PDF library could not load. Check your internet connection or use Print > Save as PDF.");
+  $("pdfBtn").addEventListener("click", async function () {
+    if (typeof window.html2pdf !== "function") {
+      alert(
+        "PDF सुविधा लोड नहीं हुई। इंटरनेट जाँचें या Print A4 में Save as PDF चुनें।"
+      );
       return;
     }
 
@@ -600,709 +660,71 @@ button.red{background:#b52b2b}
     button.disabled = true;
     button.textContent = "Preparing PDF...";
 
-    try{
+    try {
       await window.html2pdf()
         .set({
-          margin:[7,50,0,50],
-          filename:"Customer-Record.pdf",
-          image:{type:"jpeg",quality:0.98},
-          html2canvas:{
-            scale:3,
-            useCORS:true,
-            backgroundColor:"#ffffff",
-            scrollX:0,
-            scrollY:0
+          margin: [5, 50, 0, 50],
+          filename: "Customer-Record.pdf",
+          image: {
+            type: "jpeg",
+            quality: 0.98
           },
-          jsPDF:{
-            unit:"mm",
-            format:"a4",
-            orientation:"portrait"
+          html2canvas: {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            scrollX: 0,
+            scrollY: 0
           },
-          pagebreak:{mode:["css","legacy"]}
+          jsPDF: {
+            unit: "mm",
+            format: "a4",
+            orientation: "portrait"
+          },
+          pagebreak: {
+            mode: ["css", "legacy"]
+          }
         })
         .from($("record"))
         .save();
-    }catch(error){
-      console.error(error);
-      alert("PDF could not be created. Use Print A4 and select Save as PDF.");
-    }finally{
+    } catch (error) {
+      console.error("PDF error:", error);
+      alert(
+        "PDF नहीं बन सका। Print A4 दबाकर Save as PDF विकल्प इस्तेमाल करें।"
+      );
+    } finally {
       button.disabled = false;
       button.textContent = "Download PDF";
     }
   });
 
-  $("resetBtn").addEventListener("click",()=>{
-    if(!confirm("Clear all information and start a new customer record?")) return;
+  $("resetBtn").addEventListener("click", () => {
+    const confirmed = confirm(
+      "क्या आप सभी जानकारी हटाकर नया रिकॉर्ड बनाना चाहते हैं?"
+    );
 
-    fields.forEach(([inputId,outputId])=>{
+    if (!confirmed) return;
+
+    fields.forEach(([inputId, outputId]) => {
       $(inputId).value = "";
       $(outputId).textContent = "";
     });
 
-    $("photoInput").value = "";
-
-    const placeholder = document.createElement("span");
-    placeholder.className = "photo-placeholder";
-    placeholder.textContent = "PHOTO";
-    $("photoBox").replaceChildren(placeholder);
-
-    window.scrollTo({top:0,behavior:"smooth"});
-  });
-})();
-</script>
-
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fino FINO PASSBOOK Maker</title>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-<style>
-*{box-sizing:border-box}
-
-body{
-  margin:0;
-  padding:16px;
-  background:#eef1f5;
-  color:#222;
-  font-family:Arial,Helvetica,sans-serif;
-}
-
-h1.app-title{
-  text-align:center;
-  font-size:23px;
-  margin:8px 0 18px;
-}
-
-.editor{
-  max-width:650px;
-  margin:0 auto 22px;
-  padding:18px;
-  background:white;
-  border-radius:9px;
-  box-shadow:0 2px 12px #0001;
-}
-
-.editor h2{font-size:18px;margin-top:0}
-.field{margin-bottom:12px}
-
-.field label{
-  display:block;
-  font-size:13px;
-  font-weight:bold;
-  margin-bottom:5px;
-}
-
-.field input,.field textarea{
-  width:100%;
-  padding:10px;
-  border:1px solid #bbb;
-  border-radius:5px;
-  font:inherit;
-}
-
-.field textarea{min-height:65px;resize:vertical}
-
-.buttons{
-  display:flex;
-  gap:9px;
-  flex-wrap:wrap;
-  margin-top:14px;
-}
-
-button{
-  border:0;
-  padding:11px 14px;
-  border-radius:5px;
-  background:#174b88;
-  color:white;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-button:disabled{opacity:.6}
-button.green{background:#19834a}
-button.gray{background:#555}
-button.red{background:#b52b2b}
-
-.note{
-  font-size:12px;
-  color:#555;
-  line-height:1.5;
-}
-
-/* Fixed record size: 110mm x 100mm */
-#record{
-  position:relative;
-  isolation:isolate;
-  width:110mm;
-  height:100mm;
-  margin:0 auto;
-  padding:4mm;
-  background:#fff;
-  border:.5mm solid #555;
-  overflow:hidden;
-  font-family:Arial,Helvetica,sans-serif;
-  color:#202020;
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
-}
-
-/* Watermark: visible background layer */
-.watermark{
-  position:absolute;
-  z-index:0;
-  left:50%;
-  top:55%;
-  width:72mm;
-  height:72mm;
-  transform:translate(-50%,-50%);
-  opacity:.12;
-  pointer-events:none;
-  display:block;
-}
-
-/* All record content stays above watermark */
-.header,
-.photo-row,
-.records,
-.footer,
-.record-disclaimer{
-  position:relative;
-  z-index:1;
-}
-
-.header{
-  height:23mm;
-  display:grid;
-  grid-template-columns:1fr 1.25fr 1fr;
-  gap:1mm;
-  align-items:start;
-}
-
-.brand{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:1mm;
-  min-width:0;
-}
-
-.brand svg{
-  width:10mm;
-  height:12mm;
-  flex-shrink:0;
-  display:block;
-}
-
-.brand-name{
-  font-size:5.4pt;
-  line-height:1.1;
-  font-weight:bold;
-  color:#234b88;
-}
-
-.heading{
-  text-align:center;
-  padding-top:3mm;
-}
-
-.heading .kiosk{
-  font-size:10pt;
-  font-weight:normal;
-  margin-bottom:1mm;
-}
-
-.heading .bank{
-  font-size:8pt;
-  font-weight:bold;
-  line-height:1.15;
-}
-
-.photo-row{
-  height:24mm;
-  display:flex;
-  justify-content:flex-end;
-  align-items:flex-start;
-  margin-top:-1mm;
-  margin-bottom:1mm;
-}
-
-.photo-box{
-  width:19mm;
-  height:24mm;
-  border:.4mm solid #555;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  background:transparent;
-}
-
-.photo-box img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-
-.photo-placeholder{
-  text-align:center;
-  font-size:8pt;
-  font-weight:bold;
-}
-
-.records{
-  width:100%;
-  border-collapse:collapse;
-  table-layout:fixed;
-  font-size:7.1pt;
-  line-height:1.15;
-  background:transparent;
-}
-
-.records td{
-  border:.3mm solid #555;
-  padding:1.15mm 1mm;
-  vertical-align:middle;
-  overflow-wrap:anywhere;
-  background:transparent;
-}
-
-.records td.label{
-  width:46%;
-  font-weight:bold;
-}
-
-.records td.separator{
-  width:4%;
-  text-align:center;
-  font-weight:bold;
-}
-
-.records td.value{
-  width:50%;
-  font-weight:800;
-  font-size:7.3pt;
-}
-
-.records tr.address-row td{
-  height:12mm;
-  vertical-align:top;
-}
-
-.footer{
-  margin-top:2mm;
-  font-size:7pt;
-  line-height:1.35;
-  font-weight:bold;
-}
-
-.footer .service{color:#234b88}
-
-.record-disclaimer{
-  position:absolute;
-  bottom:1mm;
-  left:0;
-  width:100%;
-  text-align:center;
-  font-size:4.5pt;
-  color:#555;
-  background:#ffffffc9;
-}
-
-@media(max-width:500px){
-  body{padding:8px}
-  .editor{padding:12px}
-}
-
-/* A4 printing with safe top cutting margin */
-@page{
-  size:A4 portrait;
-  margin:5mm;
-}
-
-@media print{
-  html,body{
-    margin:0!important;
-    padding:0!important;
-    width:auto;
-    height:auto;
-    background:#fff!important;
-  }
-
-  .app-title,
-  .editor,
-  .preview-title,
-  .screen-note{
-    display:none!important;
-  }
-
-  #record{
-    position:relative;
-    left:auto;
-    top:auto;
-    transform:none;
-    margin:2mm auto 0!important;
-    width:110mm!important;
-    height:100mm!important;
-    padding:4mm!important;
-    overflow:hidden;
-    box-shadow:none!important;
-    background:#fff!important;
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
-  }
-
-  .watermark{
-    display:block!important;
-    visibility:visible!important;
-    opacity:.12!important;
-    z-index:0!important;
-    -webkit-print-color-adjust:exact!important;
-    print-color-adjust:exact!important;
-  }
-
-  .header,.photo-row,.records,.footer{
-    visibility:visible!important;
-  }
-
-  .brand svg,.watermark{
-    print-color-adjust:exact!important;
-    -webkit-print-color-adjust:exact!important;
-  }
-
-  .records td{
-    background:transparent!important;
-  }
-}
-</style>
-</head>
-
-<body>
-
-<h1 class="app-title">FINO PASSBOOK Maker</h1>
-
-<section class="editor">
-  <h2>Enter Customer Information</h2>
-
-  <div class="field">
-    <label for="customerName">Name of Account Holder</label>
-    <input id="customerName" placeholder="Enter full name">
-  </div>
-
-  <div class="field">
-    <label for="accountNo">Account Number</label>
-    <input id="accountNo" inputmode="numeric" placeholder="Enter account number">
-  </div>
-
-  <div class="field">
-    <label for="ifsc">IFSC Code</label>
-    <input id="ifsc" placeholder="Enter IFSC code">
-  </div>
-
-  <div class="field">
-    <label for="customerId">Customer ID</label>
-    <input id="customerId" placeholder="Enter customer ID">
-  </div>
-
-  <div class="field">
-    <label for="relativeName">Father's / Husband Name</label>
-    <input id="relativeName" placeholder="Enter name">
-  </div>
-
-  <div class="field">
-    <label for="address">Full Address</label>
-    <textarea id="address" placeholder="Enter full address"></textarea>
-  </div>
-
-  <div class="field">
-    <label for="mobile">Mobile Number</label>
-    <input id="mobile" inputmode="numeric" maxlength="10" placeholder="Enter mobile number">
-  </div>
-
-  <div class="field">
-    <label for="photoInput">Customer Photo</label>
-    <input id="photoInput" type="file" accept="image/*">
-  </div>
-
-  <div class="buttons">
-    <button type="button" id="pasteBtn">Paste Photo</button>
-    <button type="button" class="gray" id="removePhotoBtn">Remove Photo</button>
-  </div>
-
-  <div class="buttons">
-    <button type="button" class="green" id="printBtn">Print A4</button>
-    <button type="button" id="pdfBtn">Download PDF</button>
-    <button type="button" class="red" id="resetBtn">New Record</button>
-  </div>
-
-  <p class="note">
-    A4 पेपर पर ऊपर कटिंग के लिए जगह रखी गई है।
-    प्रिंट करते समय Scale 100% और Headers/Footers बंद रखें।
-    यदि लोगो या वॉटरमार्क हल्का दिखे, तो Printer Properties में
-    Color तथा Background Graphics विकल्प जाँचें।
-    यह ग्राहक रिकॉर्ड शीट है, आधिकारिक बैंक पासबुक नहीं।
-  </p>
-</section>
-
-<h2 class="preview-title" style="text-align:center;font-size:18px">
-  FINO PASSBOOK Preview
-</h2>
-
-<article id="record">
-
-  <!-- Decorative watermark, not an official bank seal -->
-  <svg class="watermark" viewBox="0 0 100 100" aria-hidden="true">
-    <path d="M50 5
-      C43 5 41 17 35 25
-      L17 29 C5 32 9 45 17 51
-      L28 61 L25 78
-      C23 91 35 96 45 88
-      L50 83 L55 88
-      C65 96 77 91 75 78
-      L72 61 L83 51
-      C91 45 95 32 83 29
-      L65 25 C59 17 57 5 50 5Z"
-      fill="#b94a42"/>
-    <path d="M50 51
-      C39 51 35 62 42 73
-      L50 87 L58 73
-      C65 62 61 51 50 51Z"
-      fill="#245aa8"/>
-  </svg>
-
-  <header class="header">
-    <div class="brand">
-      <svg viewBox="0 0 100 120" aria-hidden="true">
-        <path d="M50 5 L62 35 L92 36 L69 56 L78 86 L50 69 L22 86 L31 56 L8 36 L38 35Z"
-          fill="none" stroke="#b94a42" stroke-width="12" stroke-linejoin="round"/>
-        <path d="M50 62 C37 62 34 77 43 89 L50 103 L57 89 C66 77 63 62 50 62Z"
-          fill="#245aa8"/>
-      </svg>
-      <div class="brand-name">FINO<br>PAYMENTS BANK</div>
-    </div>
-
-    <div class="heading">
-      <div class="kiosk">KIOSK</div>
-      <div class="bank">FINO PAYMENTS BANK</div>
-    </div>
-
-    <div class="brand">
-      <svg viewBox="0 0 100 120" aria-hidden="true">
-        <path d="M50 5 L62 35 L92 36 L69 56 L78 86 L50 69 L22 86 L31 56 L8 36 L38 35Z"
-          fill="none" stroke="#b94a42" stroke-width="12" stroke-linejoin="round"/>
-        <path d="M50 62 C37 62 34 77 43 89 L50 103 L57 89 C66 77 63 62 50 62Z"
-          fill="#245aa8"/>
-      </svg>
-      <div class="brand-name">FINO<br>PAYMENTS BANK</div>
-    </div>
-  </header>
-
-  <div class="photo-row">
-    <div class="photo-box" id="photoBox">
-      <span class="photo-placeholder">PHOTO</span>
-    </div>
-  </div>
-
-  <table class="records">
-    <tbody>
-      <tr>
-        <td class="label">NAME OF ACCOUNT HOLDER</td>
-        <td class="separator">:</td>
-        <td class="value" id="outName"></td>
-      </tr>
-      <tr>
-        <td class="label">ACCOUNT NO.</td>
-        <td class="separator">:</td>
-        <td class="value" id="outAccount"></td>
-      </tr>
-      <tr>
-        <td class="label">IFSC CODE</td>
-        <td class="separator">:</td>
-        <td class="value" id="outIfsc"></td>
-      </tr>
-      <tr>
-        <td class="label">CUSTOMER ID</td>
-        <td class="separator">:</td>
-        <td class="value" id="outCustomerId"></td>
-      </tr>
-      <tr>
-        <td class="label">FATHER'S / HUSBAND NAME</td>
-        <td class="separator">:</td>
-        <td class="value" id="outRelative"></td>
-      </tr>
-      <tr class="address-row">
-        <td class="label">ADDRESS</td>
-        <td class="separator">:</td>
-        <td class="value" id="outAddress"></td>
-      </tr>
-      <tr>
-        <td class="label">MOBILE</td>
-        <td class="separator">:</td>
-        <td class="value" id="outMobile"></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <footer class="footer">
-    <div class="service">Customer service: 022 6868 1414</div>
-    <div>www.finobank.com</div>
-  </footer>
-
-   <div class="record-disclaimer">
-    --
-  </div>
-</article>
-
-<script>
-(function(){
-  "use strict";
-
-  const $ = id => document.getElementById(id);
-
-  const fields = [
-    ["customerName","outName"],
-    ["accountNo","outAccount"],
-    ["ifsc","outIfsc"],
-    ["customerId","outCustomerId"],
-    ["relativeName","outRelative"],
-    ["address","outAddress"],
-    ["mobile","outMobile"]
-  ];
-
-  fields.forEach(([inputId,outputId])=>{
-    $(inputId).addEventListener("input",()=>{
-      $(outputId).textContent = $(inputId).value.trim();
-    });
-  });
-
-  function displayPhoto(dataUrl){
-    if(!dataUrl || !dataUrl.startsWith("data:image/")){
-      alert("Please select a valid image.");
-      return;
-    }
-
-    const img = document.createElement("img");
-    img.src = dataUrl;
-    img.alt = "Customer photo";
-    $("photoBox").replaceChildren(img);
-  }
-
-  $("photoInput").addEventListener("change",function(){
-    const file = this.files && this.files[0];
-    if(!file) return;
-
-    if(!file.type.startsWith("image/")){
-      alert("Please select an image file.");
-      this.value = "";
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = ()=>displayPhoto(reader.result);
-    reader.onerror = ()=>alert("Could not read the photo. Please try again.");
-    reader.readAsDataURL(file);
-  });
-
-  $("pasteBtn").addEventListener("click",()=>{
-    alert("Copy a photo, then press Ctrl + V on this page.");
-  });
-
-  document.addEventListener("paste",event=>{
-    const items = event.clipboardData && event.clipboardData.items;
-    if(!items) return;
-
-    for(const item of items){
-      if(item.type && item.type.startsWith("image/")){
-        const file = item.getAsFile();
-        if(!file) continue;
-
-        const reader = new FileReader();
-        reader.onload = ()=>displayPhoto(reader.result);
-        reader.readAsDataURL(file);
-        event.preventDefault();
-        return;
-      }
-    }
-  });
-
-  $("removePhotoBtn").addEventListener("click",()=>{
-    $("photoInput").value = "";
-    const placeholder = document.createElement("span");
-    placeholder.className = "photo-placeholder";
-    placeholder.textContent = "PHOTO";
-    $("photoBox").replaceChildren(placeholder);
-  });
-
-  $("printBtn").addEventListener("click",()=>{
-    window.print();
-  });
-
-  $("pdfBtn").addEventListener("click",async function(){
-    if(typeof window.html2pdf !== "function"){
-      alert("PDF library could not load. Check your internet connection or use Print > Save as PDF.");
-      return;
-    }
-
-    const button = this;
-    button.disabled = true;
-    button.textContent = "Preparing PDF...";
-
-    try{
-      await window.html2pdf()
-        .set({
-          margin:[7,50,0,50],
-          filename:"Customer-Record.pdf",
-          image:{type:"jpeg",quality:0.98},
-          html2canvas:{
-            scale:3,
-            useCORS:true,
-            backgroundColor:"#ffffff",
-            scrollX:0,
-            scrollY:0
-          },
-          jsPDF:{
-            unit:"mm",
-            format:"a4",
-            orientation:"portrait"
-          },
-          pagebreak:{mode:["css","legacy"]}
-        })
-        .from($("record"))
-        .save();
-    }catch(error){
-      console.error(error);
-      alert("PDF could not be created. Use Print A4 and select Save as PDF.");
-    }finally{
-      button.disabled = false;
-      button.textContent = "Download PDF";
-    }
-  });
-
-  $("resetBtn").addEventListener("click",()=>{
-    if(!confirm("Clear all information and start a new FINO PASSBOOK?")) return;
-
-    fields.forEach(([inputId,outputId])=>{
-      $(inputId).value = "";
-      $(outputId).textContent = "";
+    resetPhoto();
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
     });
 
-    $("photoInput").value = "";
-
-    const placeholder = document.createElement("span");
-    placeholder.className = "photo-placeholder";
-    placeholder.textContent = "PHOTO";
-    $("photoBox").replaceChildren(placeholder);
-
-    window.scrollTo({top:0,behavior:"smooth"});
+    $("customerName").focus();
   });
+
+  /*
+   * कोई ग्राहक डेटा localStorage, sessionStorage
+   * या किसी डेटाबेस में सेव नहीं किया जाता।
+   * पेज दोबारा खुलने पर खाली टेम्पलेट मिलता है।
+   */
 })();
 </script>
 
