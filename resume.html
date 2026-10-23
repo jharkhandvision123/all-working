@@ -1,0 +1,831 @@
+
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#123d75">
+<title>Professional Resume Maker</title>
+
+<!-- PDF बनाने के लिए लाइब्रेरी -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+:root {
+  --blue: #123d75;
+  --border: #999;
+  --light: #f3f6fa;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #edf1f5;
+  color: #202020;
+  font-family: Arial, "Noto Sans Devanagari", sans-serif;
+}
+button, input, textarea, select { font: inherit; }
+.topbar {
+  background: var(--blue);
+  color: white;
+  text-align: center;
+  padding: 17px 10px;
+}
+.topbar h1 { margin: 0 0 5px; font-size: 24px; }
+.topbar p { margin: 0; font-size: 13px; }
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(280px, 390px) minmax(0, 1fr);
+  gap: 18px;
+  padding: 18px;
+  align-items: start;
+}
+.panel {
+  background: white;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 12px #00000012;
+}
+.panel h2 {
+  font-size: 19px;
+  margin: 0 0 14px;
+  color: var(--blue);
+}
+.group { margin-bottom: 13px; }
+.group label {
+  display: block;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 5px;
+}
+.group input, .group textarea, .group select {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #c5ccd5;
+  border-radius: 5px;
+  background: white;
+  outline-color: var(--blue);
+}
+.group textarea { min-height: 65px; resize: vertical; }
+.section-title {
+  margin: 22px 0 12px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid #d7dce4;
+  font-size: 15px;
+  color: #153d6c;
+}
+.education-input {
+  border: 1px solid #d0d6df;
+  padding: 10px;
+  border-radius: 7px;
+  margin-bottom: 10px;
+  background: #fafcff;
+}
+.education-input strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.education-input .group { margin-bottom: 8px; }
+.education-input .group:last-child { margin-bottom: 0; }
+.education-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 16px;
+}
+.btn {
+  border: 0;
+  border-radius: 5px;
+  padding: 10px 13px;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+}
+.btn:disabled { opacity: .6; cursor: wait; }
+.btn-blue { background: #174e91; }
+.btn-green { background: #188448; }
+.btn-red { background: #bf3030; }
+.btn-gray { background: #555e69; }
+.btn-orange { background: #b9680a; }
+.btn:hover { filter: brightness(.92); }
+.photo-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.photo-buttons .btn { font-size: 12px; }
+.photo-note { font-size: 12px; color: #555; margin-top: 6px; }
+.actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.actions .btn { flex: 1 1 120px; }
+.preview-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.preview-heading h2 { margin: 0; font-size: 18px; }
+.preview-heading span { font-size: 12px; color: #666; }
+
+/* Resume paper */
+#resume {
+  background: white;
+  width: 100%;
+  max-width: 794px;
+  min-height: 1123px;
+  margin: 0 auto;
+  padding: 30px 34px;
+  box-shadow: 0 2px 14px #00000024;
+  color: #222;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 11px;
+  line-height: 1.32;
+  overflow-wrap: anywhere;
+}
+.resume-title {
+  text-align: center;
+  font-size: 25px;
+  line-height: 1.2;
+  font-weight: 800;
+  margin: 0 0 12px;
+}
+.resume-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  min-height: 115px;
+  margin-bottom: 8px;
+}
+.resume-person { flex: 1; min-width: 0; }
+.resume-name {
+  font-size: 17px;
+  font-weight: 800;
+  margin: 0 0 3px;
+  line-height: 1.2;
+}
+.resume-contact {
+  font-size: 10px;
+  white-space: pre-line;
+  line-height: 1.35;
+}
+.photo-frame {
+  width: 87px;
+  height: 96px;
+  flex: 0 0 87px;
+  border: 1px solid #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: white;
+}
+.photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-placeholder {
+  font-size: 10px;
+  text-align: center;
+  color: #888;
+}
+.resume-section { margin-top: 9px; }
+.resume-section h3 {
+  font-size: 11px;
+  font-weight: 700;
+  margin: 0 0 7px;
+  padding: 0 0 4px;
+  border-bottom: 1px solid #777;
+}
+.resume-section-content {
+  font-size: 10.5px;
+  white-space: pre-line;
+  line-height: 1.35;
+  min-height: 0;
+}
+#previewEducation {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 10px;
+}
+#previewEducation th, #previewEducation td {
+  border: 1px solid #888;
+  padding: 6px 5px;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+#previewEducation th {
+  font-weight: 700;
+  background: #f8f8f8;
+}
+#previewEducation th:nth-child(1) { width: 36%; }
+#previewEducation th:nth-child(2) { width: 35%; }
+#previewEducation th:nth-child(3) { width: 17%; }
+#previewEducation th:nth-child(4) { width: 12%; }
+.declaration-content { margin: 0; }
+.resume-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  font-size: 10px;
+}
+.resume-footer > div { max-width: 48%; }
+.signature { text-align: right; white-space: pre-line; }
+
+@media(max-width: 850px) {
+  .workspace { grid-template-columns: 1fr; padding: 10px; }
+  #resume { padding: 25px 20px; }
+}
+@media(max-width: 420px) {
+  #resume { padding: 20px 12px; font-size: 10px; }
+  .resume-title { font-size: 22px; }
+  .resume-name { font-size: 15px; }
+  .photo-frame { width: 76px; height: 88px; flex-basis: 76px; }
+  #previewEducation th, #previewEducation td {
+    padding: 4px 3px;
+    font-size: 9px;
+  }
+}
+
+/* Print layout: A4 */
+@page { size: A4 portrait; margin: 0; }
+@media print {
+  body { background: white; }
+  .topbar, .editor-panel, .preview-heading, .actions, .no-print {
+    display: none !important;
+  }
+  .workspace { display: block; padding: 0; margin: 0; }
+  .preview-panel {
+    padding: 0;
+    margin: 0;
+    box-shadow: none;
+    border: 0;
+  }
+  #resume {
+    width: 210mm;
+    max-width: none;
+    min-height: 297mm;
+    margin: 0;
+    padding: 12mm 13mm;
+    box-shadow: none;
+    font-size: 10pt;
+    overflow: visible;
+  }
+  .resume-title { font-size: 20pt; }
+  .resume-name { font-size: 14pt; }
+  .resume-contact { font-size: 8pt; }
+  .resume-section h3 { font-size: 9pt; }
+  .resume-section-content { font-size: 8.5pt; }
+  #previewEducation { font-size: 8pt; }
+  #previewEducation th, #previewEducation td {
+    padding: 5px 4px;
+  }
+  .resume-header, .resume-section, #previewEducation tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+</style>
+</head>
+
+<body>
+<header class="topbar">
+  <h1>Professional Resume Maker</h1>
+  <p>जानकारी भरें और अपना Resume तैयार करें</p>
+</header>
+
+<main class="workspace">
+  <!-- INFORMATION FORM -->
+  <section class="panel editor-panel">
+    <h2>Resume की जानकारी भरें</h2>
+
+    <div class="group">
+      <label for="name">पूरा नाम *</label>
+      <input id="name" data-preview="previewName" placeholder="जैसे: Ankita Yadav">
+    </div>
+    <div class="group">
+      <label for="address">गाँव / शहर और राज्य</label>
+      <textarea id="address" data-preview="previewAddress" placeholder="Sheopur, Madhya Pradesh"></textarea>
+    </div>
+    <div class="group">
+      <label for="pincode">पिनकोड</label>
+      <input id="pincode" data-preview="previewPincode" inputmode="numeric" maxlength="6" placeholder="पिनकोड">
+    </div>
+    <div class="group">
+      <label for="mobile">मोबाइल नंबर</label>
+      <input id="mobile" data-preview="previewMobile" inputmode="numeric" maxlength="10" placeholder="10 अंकों का नंबर">
+    </div>
+    <div class="group">
+      <label for="email">ईमेल</label>
+      <input id="email" data-preview="previewEmail" type="email" placeholder="example@gmail.com">
+    </div>
+
+    <div class="group">
+      <label>फोटो अपलोड / पेस्ट करें</label>
+      <input id="photoInput" type="file" accept="image/*">
+      <div class="photo-buttons">
+        <button class="btn btn-blue" type="button" id="pastePhoto">Paste Photo</button>
+        <button class="btn btn-red" type="button" id="removePhoto">Remove Photo</button>
+      </div>
+      <p class="photo-note">कॉपी की गई फोटो पेस्ट करने के लिए Paste Photo दबाएँ और Ctrl + V करें।</p>
+    </div>
+
+    <h3 class="section-title">Objective</h3>
+    <div class="group">
+      <label for="objective">Career Objective</label>
+      <textarea id="objective" data-preview="previewObjective">I seek challenging opportunities where I can fully use my skills for the success of the organization.</textarea>
+    </div>
+
+    <h3 class="section-title">Experience</h3>
+    <div class="group">
+      <label for="experience">कार्य अनुभव</label>
+      <textarea id="experience" data-preview="previewExperience" placeholder="कंपनी का नाम&#10;पद और कार्य अनुभव&#10;वर्ष"></textarea>
+    </div>
+
+    <h3 class="section-title">Education</h3>
+    <p style="font-size:12px;color:#555">
+      हर कोर्स की जानकारी अलग पंक्ति में भरें। जरूरत के अनुसार पंक्तियाँ जोड़ें या हटाएँ।
+    </p>
+    <div id="educationInputs"></div>
+    <div class="education-actions">
+      <button class="btn btn-green" type="button" id="addEducation">+ Add Row</button>
+      <button class="btn btn-red" type="button" id="removeEducation">− Remove Last Row</button>
+    </div>
+
+    <h3 class="section-title">Skills</h3>
+    <div class="group">
+      <label for="skills">कौशल</label>
+      <textarea id="skills" data-preview="previewSkills" placeholder="Computer proficiency&#10;Communication skills&#10;Problem-solving abilities"></textarea>
+    </div>
+
+    <h3 class="section-title">Achievements & Awards</h3>
+    <div class="group">
+      <label for="achievements">उपलब्धियाँ एवं पुरस्कार</label>
+      <textarea id="achievements" data-preview="previewAchievements" placeholder="प्राप्त पुरस्कार और उपलब्धियाँ"></textarea>
+    </div>
+
+    <h3 class="section-title">Languages</h3>
+    <div class="group">
+      <label for="languages">भाषाएँ</label>
+      <input id="languages" data-preview="previewLanguages" placeholder="Hindi, English, Tamil">
+    </div>
+
+    <h3 class="section-title">Personal Details</h3>
+    <div class="group">
+      <label for="dob">Date of Birth</label>
+      <input id="dob" data-preview="previewDOB" placeholder="DD/MM/YYYY">
+    </div>
+    <div class="group">
+      <label for="marital">Marital Status</label>
+      <select id="marital" data-preview="previewMarital">
+        <option value="">चुनें</option>
+        <option>Single</option>
+        <option>Married</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="group">
+      <label for="nationality">Nationality</label>
+      <input id="nationality" data-preview="previewNationality" value="Indian">
+    </div>
+    <div class="group">
+      <label for="religion">Religion (वैकल्पिक)</label>
+      <input id="religion" data-preview="previewReligion" placeholder="वैकल्पिक">
+    </div>
+    <div class="group">
+      <label for="gender">Gender</label>
+      <select id="gender" data-preview="previewGender">
+        <option value="">चुनें</option>
+        <option>Male</option>
+        <option>Female</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="group">
+      <label for="place">Place</label>
+      <input id="place" data-preview="previewPlace" placeholder="स्थान">
+    </div>
+
+    <h3 class="section-title">Declaration</h3>
+    <div class="group">
+      <label for="declaration">घोषणा</label>
+      <textarea id="declaration" data-preview="previewDeclaration">I hereby declare that all the above information is true to the best of my knowledge.</textarea>
+    </div>
+
+    <h3 class="section-title">Date & Signature</h3>
+    <div class="group">
+      <label for="resumeDate">Date</label>
+      <input id="resumeDate" data-preview="previewDate" placeholder="DD/MM/YYYY">
+    </div>
+    <div class="group">
+      <label for="signature">Signature / नाम</label>
+      <input id="signature" data-preview="previewSignature" placeholder="आपका नाम">
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-gray" type="button" id="resetBtn">New Resume / Reset</button>
+    </div>
+  </section>
+
+  <!-- LIVE RESUME PREVIEW -->
+  <section class="panel preview-panel">
+    <div class="preview-heading">
+      <h2>Resume Preview</h2>
+      <span>Live Preview · A4</span>
+    </div>
+    <div class="actions">
+      <button class="btn btn-blue" type="button" id="printBtn">Print Resume</button>
+      <button class="btn btn-green" type="button" id="pdfBtn">Download PDF</button>
+    </div>
+
+    <article id="resume">
+      <h1 class="resume-title">RESUME</h1>
+
+      <div class="resume-header">
+        <div class="resume-person">
+          <h2 class="resume-name" id="previewName">[पूरा नाम]</h2>
+          <div class="resume-contact" id="previewAddress">[गाँव / शहर, राज्य]</div>
+          <div class="resume-contact" id="contactPincode"></div>
+          <div class="resume-contact" id="contactMobile"></div>
+          <div class="resume-contact" id="contactEmail"></div>
+        </div>
+        <div class="photo-frame" id="photoFrame">
+          <span class="photo-placeholder">PHOTO</span>
+        </div>
+      </div>
+
+      <section class="resume-section">
+        <h3>Objective</h3>
+        <div class="resume-section-content" id="previewObjective"></div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Experience</h3>
+        <div class="resume-section-content" id="previewExperience"></div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Education</h3>
+        <table id="previewEducation">
+          <thead>
+            <tr>
+              <th>Course / Degree</th>
+              <th>School / University</th>
+              <th>Grade / Score</th>
+              <th>Year</th>
+            </tr>
+          </thead>
+          <tbody id="educationPreviewBody"></tbody>
+        </table>
+      </section>
+
+      <section class="resume-section">
+        <h3>Skills</h3>
+        <div class="resume-section-content" id="previewSkills"></div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Achievements &amp; Awards</h3>
+        <div class="resume-section-content" id="previewAchievements"></div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Languages</h3>
+        <div class="resume-section-content" id="previewLanguages"></div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Personal Details</h3>
+        <div class="resume-section-content" id="personalPreview">
+          <div id="personalDOB"></div>
+          <div id="personalMarital"></div>
+          <div id="personalNationality"></div>
+          <div id="personalReligion"></div>
+          <div id="personalGender"></div>
+          <div id="personalPlace"></div>
+        </div>
+      </section>
+
+      <section class="resume-section">
+        <h3>Declaration</h3>
+        <div class="resume-section-content declaration-content" id="previewDeclaration"></div>
+      </section>
+
+      <div class="resume-footer">
+        <div id="footerDate">Date:</div>
+        <div class="signature" id="footerSignature">Signature:</div>
+      </div>
+    </article>
+  </section>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  const $ = id => document.getElementById(id);
+  const educationInputs = $("educationInputs");
+  const educationBody = $("educationPreviewBody");
+  let educationCount = 0;
+  let photoData = "";
+  let pasteMode = false;
+
+  function getValue(id) {
+    const el = $(id);
+    return el ? el.value.trim() : "";
+  }
+
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value || "";
+  }
+
+  // All normal form fields
+  document.querySelectorAll("[data-preview]").forEach(input => {
+    input.addEventListener("input", updatePreview);
+    input.addEventListener("change", updatePreview);
+  });
+
+  function updatePreview() {
+    setText("previewName", getValue("name") || "[पूरा नाम]");
+    setText("previewAddress", getValue("address"));
+    setText("contactPincode", getValue("pincode") ? "Pincode - " + getValue("pincode") : "");
+    setText("contactMobile", getValue("mobile"));
+    setText("contactEmail", getValue("email"));
+    setText("previewObjective", getValue("objective"));
+    setText("previewExperience", getValue("experience"));
+    setText("previewSkills", getValue("skills"));
+    setText("previewAchievements", getValue("achievements"));
+    setText("previewLanguages", getValue("languages"));
+    setText("previewDeclaration", getValue("declaration"));
+
+    setText("personalDOB", getValue("dob") ? "• Date of Birth : " + getValue("dob") : "");
+    setText("personalMarital", getValue("marital") ? "• Marital Status : " + getValue("marital") : "");
+    setText("personalNationality", getValue("nationality") ? "• Nationality : " + getValue("nationality") : "");
+    setText("personalReligion", getValue("religion") ? "• Religion : " + getValue("religion") : "");
+    setText("personalGender", getValue("gender") ? "• Gender : " + getValue("gender") : "");
+    setText("personalPlace", getValue("place") ? "• Place : " + getValue("place") : "");
+    setText("footerDate", getValue("resumeDate") ? "Date: " + getValue("resumeDate") : "");
+    setText("footerSignature", getValue("signature") ? getValue("signature") : "");
+
+    updateEducationPreview();
+  }
+
+  function addEducationRow(values = {}) {
+    educationCount++;
+    const number = educationCount;
+
+    const card = document.createElement("div");
+    card.className = "education-input";
+    card.dataset.educationId = String(number);
+
+    const heading = document.createElement("strong");
+    heading.textContent = "Education " + number;
+    card.appendChild(heading);
+
+    const fields = [
+      ["course", "Course / Degree", "जैसे: 12th"],
+      ["school", "School / University", "संस्थान का नाम"],
+      ["grade", "Grade / Score", "जैसे: 85%"],
+      ["year", "Year", "जैसे: 2024"]
+    ];
+
+    fields.forEach(([key, labelText, placeholder]) => {
+      const group = document.createElement("div");
+      group.className = "group";
+
+      const label = document.createElement("label");
+      label.textContent = labelText;
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = placeholder;
+      input.value = values[key] || "";
+      input.dataset.field = key;
+      input.autocomplete = "off";
+      input.addEventListener("input", updateEducationPreview);
+
+      group.appendChild(label);
+      group.appendChild(input);
+      card.appendChild(group);
+    });
+
+    educationInputs.appendChild(card);
+    updateEducationPreview();
+  }
+
+  function updateEducationPreview() {
+    educationBody.replaceChildren();
+
+    const cards = Array.from(educationInputs.querySelectorAll(".education-input"));
+
+    cards.forEach(card => {
+      const get = key => {
+        const input = card.querySelector('[data-field="' + key + '"]');
+        return input ? input.value.trim() : "";
+      };
+
+      const values = [
+        get("course"),
+        get("school"),
+        get("grade"),
+        get("year")
+      ];
+
+      // खाली पंक्ति Resume में दिखाई नहीं देगी
+      if (!values.some(Boolean)) return;
+
+      const tr = document.createElement("tr");
+      values.forEach(value => {
+        const td = document.createElement("td");
+        td.textContent = value;
+        tr.appendChild(td);
+      });
+      educationBody.appendChild(tr);
+    });
+  }
+
+  $("addEducation").addEventListener("click", function () {
+    addEducationRow();
+  });
+
+  $("removeEducation").addEventListener("click", function () {
+    const cards = educationInputs.querySelectorAll(".education-input");
+    if (cards.length <= 1) {
+      alert("कम से कम एक Education Row रखना जरूरी है।");
+      return;
+    }
+    cards[cards.length - 1].remove();
+    updateEducationPreview();
+  });
+
+  // Photo upload
+  function showPhoto(dataUrl) {
+    if (!dataUrl || !dataUrl.startsWith("data:image/")) {
+      alert("कृपया सही इमेज फाइल चुनें।");
+      return;
+    }
+    photoData = dataUrl;
+    const frame = $("photoFrame");
+    frame.replaceChildren();
+    const img = document.createElement("img");
+    img.src = photoData;
+    img.alt = "Resume Photo";
+    frame.appendChild(img);
+  }
+
+  $("photoInput").addEventListener("change", function () {
+    const file = this.files && this.files[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      alert("कृपया फोटो फाइल चुनें।");
+      this.value = "";
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => showPhoto(reader.result);
+    reader.onerror = () => alert("फोटो पढ़ी नहीं जा सकी। दोबारा प्रयास करें।");
+    reader.readAsDataURL(file);
+  });
+
+  $("pastePhoto").addEventListener("click", function () {
+    pasteMode = true;
+    alert("अब फोटो कॉपी करके Ctrl + V दबाएँ।");
+  });
+
+  document.addEventListener("paste", function (event) {
+    const items = event.clipboardData && event.clipboardData.items;
+    if (!items) return;
+
+    for (const item of items) {
+      if (item.type && item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (!file) continue;
+        const reader = new FileReader();
+        reader.onload = () => showPhoto(reader.result);
+        reader.readAsDataURL(file);
+        pasteMode = false;
+        event.preventDefault();
+        return;
+      }
+    }
+
+    if (pasteMode) {
+      alert("क्लिपबोर्ड में कोई फोटो नहीं मिली। फोटो कॉपी करके फिर प्रयास करें।");
+      pasteMode = false;
+    }
+  });
+
+  $("removePhoto").addEventListener("click", function () {
+    photoData = "";
+    $("photoInput").value = "";
+    $("photoFrame").replaceChildren();
+    const placeholder = document.createElement("span");
+    placeholder.className = "photo-placeholder";
+    placeholder.textContent = "PHOTO";
+    $("photoFrame").appendChild(placeholder);
+  });
+
+  // Print
+  $("printBtn").addEventListener("click", function () {
+    updatePreview();
+    window.print();
+  });
+
+  // PDF download
+  $("pdfBtn").addEventListener("click", async function () {
+    updatePreview();
+
+    if (typeof window.html2pdf !== "function") {
+      alert("PDF लाइब्रेरी लोड नहीं हुई। इंटरनेट कनेक्शन जाँचकर पेज Refresh करें या Print Resume चुनें और Save as PDF करें।");
+      return;
+    }
+
+    const button = this;
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = "PDF बन रही है...";
+
+    try {
+      const name = getValue("name")
+        .replace(/[\\/:*?"<>|]/g, "")
+        .trim() || "Resume";
+
+      const options = {
+        margin: 0,
+        filename: name + "_Resume.pdf",
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#ffffff",
+          scrollX: 0,
+          scrollY: 0
+        },
+        jsPDF: {
+          unit: "mm",
+          format: "a4",
+          orientation: "portrait"
+        },
+        pagebreak: {
+          mode: ["css", "legacy"],
+          avoid: [".resume-header", ".resume-section", "#previewEducation tr"]
+        }
+      };
+
+      await window.html2pdf().set(options).from($("resume")).save();
+    } catch (error) {
+      console.error("PDF error:", error);
+      alert("PDF बनाने में समस्या आई। Print Resume दबाकर Save as PDF का विकल्प इस्तेमाल करें।");
+    } finally {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  });
+
+  // Reset all fields for the next person's resume
+  $("resetBtn").addEventListener("click", function () {
+    if (!confirm("क्या आप सभी जानकारी हटाकर नया Resume बनाना चाहते हैं?")) return;
+
+    document.querySelectorAll(".editor-panel input, .editor-panel textarea, .editor-panel select")
+      .forEach(el => {
+        if (el.id === "photoInput") {
+          el.value = "";
+        } else if (el.id === "nationality") {
+          el.value = "Indian";
+        } else if (el.id === "objective") {
+          el.value = "I seek challenging opportunities where I can fully use my skills for the success of the organization.";
+        } else if (el.id === "declaration") {
+          el.value = "I hereby declare that all the above information is true to the best of my knowledge.";
+        } else {
+          el.value = "";
+        }
+      });
+
+    educationInputs.replaceChildren();
+    educationCount = 0;
+    addEducationRow();
+
+    photoData = "";
+    $("photoFrame").replaceChildren();
+    const placeholder = document.createElement("span");
+    placeholder.className = "photo-placeholder";
+    placeholder.textContent = "PHOTO";
+    $("photoFrame").appendChild(placeholder);
+
+    updatePreview();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // Initial setup
+  addEducationRow();
+  updatePreview();
+})();
+</script>
+</body>
+</html>
