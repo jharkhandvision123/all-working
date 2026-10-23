@@ -34,11 +34,7 @@ h1.app-title{
   box-shadow:0 2px 12px #0001;
 }
 
-.editor h2{
-  font-size:18px;
-  margin-top:0;
-}
-
+.editor h2{font-size:18px;margin-top:0}
 .field{margin-bottom:12px}
 
 .field label{
@@ -56,10 +52,7 @@ h1.app-title{
   font:inherit;
 }
 
-.field textarea{
-  min-height:65px;
-  resize:vertical;
-}
+.field textarea{min-height:65px;resize:vertical}
 
 .buttons{
   display:flex;
@@ -79,7 +72,6 @@ button{
 }
 
 button:disabled{opacity:.6}
-
 button.green{background:#19834a}
 button.gray{background:#555}
 button.red{background:#b52b2b}
@@ -90,7 +82,7 @@ button.red{background:#b52b2b}
   line-height:1.5;
 }
 
-/* Customer record: fixed physical size */
+/* Fixed record size: 110mm x 100mm */
 #record{
   position:relative;
   isolation:isolate;
@@ -99,23 +91,36 @@ button.red{background:#b52b2b}
   margin:0 auto;
   padding:4mm;
   background:#fff;
-  border:0.5mm solid #555;
+  border:.5mm solid #555;
   overflow:hidden;
   font-family:Arial,Helvetica,sans-serif;
   color:#202020;
+  -webkit-print-color-adjust:exact;
+  print-color-adjust:exact;
 }
 
-/* Watermark remains behind the information */
+/* Watermark: visible background layer */
 .watermark{
   position:absolute;
-  z-index:-1;
+  z-index:0;
   left:50%;
   top:55%;
   width:72mm;
   height:72mm;
   transform:translate(-50%,-50%);
-  opacity:.075;
+  opacity:.12;
   pointer-events:none;
+  display:block;
+}
+
+/* All record content stays above watermark */
+.header,
+.photo-row,
+.records,
+.footer,
+.record-disclaimer{
+  position:relative;
+  z-index:1;
 }
 
 .header{
@@ -138,6 +143,7 @@ button.red{background:#b52b2b}
   width:10mm;
   height:12mm;
   flex-shrink:0;
+  display:block;
 }
 
 .brand-name{
@@ -165,7 +171,6 @@ button.red{background:#b52b2b}
 }
 
 .photo-row{
-  position:relative;
   height:18mm;
   display:flex;
   justify-content:flex-end;
@@ -189,6 +194,7 @@ button.red{background:#b52b2b}
   width:100%;
   height:100%;
   object-fit:cover;
+  display:block;
 }
 
 .photo-placeholder{
@@ -198,13 +204,12 @@ button.red{background:#b52b2b}
 }
 
 .records{
-  position:relative;
-  z-index:1;
   width:100%;
   border-collapse:collapse;
   table-layout:fixed;
   font-size:7.1pt;
   line-height:1.15;
+  background:transparent;
 }
 
 .records td{
@@ -212,6 +217,7 @@ button.red{background:#b52b2b}
   padding:1.15mm 1mm;
   vertical-align:middle;
   overflow-wrap:anywhere;
+  background:transparent;
 }
 
 .records td.label{
@@ -237,8 +243,6 @@ button.red{background:#b52b2b}
 }
 
 .footer{
-  position:relative;
-  z-index:1;
   margin-top:2mm;
   font-size:7pt;
   line-height:1.35;
@@ -263,29 +267,64 @@ button.red{background:#b52b2b}
   .editor{padding:12px}
 }
 
+/* A4 printing with safe top cutting margin */
 @page{
   size:A4 portrait;
-  margin:0;
+  margin:5mm;
 }
 
 @media print{
-  body{
-    padding:0;
-    margin:0;
-    background:white;
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    width:auto;
+    height:auto;
+    background:#fff!important;
   }
-  .app-title,.editor,.preview-title,.screen-note{
+
+  .app-title,
+  .editor,
+  .preview-title,
+  .screen-note{
     display:none!important;
   }
+
   #record{
-    position:absolute;
-    left:50%;
-    top:50%;
-    transform:translate(-50%,-50%);
-    margin:0;
-    box-shadow:none;
-    -webkit-print-color-adjust:exact;
-    print-color-adjust:exact;
+    position:relative;
+    left:auto;
+    top:auto;
+    transform:none;
+    margin:2mm auto 0!important;
+    width:110mm!important;
+    height:100mm!important;
+    padding:4mm!important;
+    overflow:hidden;
+    box-shadow:none!important;
+    background:#fff!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  .watermark{
+    display:block!important;
+    visibility:visible!important;
+    opacity:.12!important;
+    z-index:0!important;
+    -webkit-print-color-adjust:exact!important;
+    print-color-adjust:exact!important;
+  }
+
+  .header,.photo-row,.records,.footer{
+    visibility:visible!important;
+  }
+
+  .brand svg,.watermark{
+    print-color-adjust:exact!important;
+    -webkit-print-color-adjust:exact!important;
+  }
+
+  .records td{
+    background:transparent!important;
   }
 }
 </style>
@@ -350,7 +389,10 @@ button.red{background:#b52b2b}
   </div>
 
   <p class="note">
-    Print dialog में A4 paper और Scale 100% चुनें। Browser headers और footers बंद रखें।
+    A4 पेपर पर ऊपर कटिंग के लिए जगह रखी गई है।
+    प्रिंट करते समय Scale 100% और Headers/Footers बंद रखें।
+    यदि लोगो या वॉटरमार्क हल्का दिखे, तो Printer Properties में
+    Color तथा Background Graphics विकल्प जाँचें।
     यह ग्राहक रिकॉर्ड शीट है, आधिकारिक बैंक पासबुक नहीं।
   </p>
 </section>
@@ -495,7 +537,6 @@ button.red{background:#b52b2b}
     const img = document.createElement("img");
     img.src = dataUrl;
     img.alt = "Customer photo";
-
     $("photoBox").replaceChildren(img);
   }
 
@@ -562,9 +603,9 @@ button.red{background:#b52b2b}
     try{
       await window.html2pdf()
         .set({
-          margin:0,
+          margin:[7,50,0,50],
           filename:"Customer-Record.pdf",
-          image:{type:"jpeg",quality:0.97},
+          image:{type:"jpeg",quality:0.98},
           html2canvas:{
             scale:3,
             useCORS:true,
@@ -576,7 +617,8 @@ button.red{background:#b52b2b}
             unit:"mm",
             format:"a4",
             orientation:"portrait"
-          }
+          },
+          pagebreak:{mode:["css","legacy"]}
         })
         .from($("record"))
         .save();
